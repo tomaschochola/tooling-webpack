@@ -22,7 +22,7 @@ import webpack from 'webpack';
 import WorkboxPlugin from 'workbox-webpack-plugin';
 import { constants } from 'zlib';
 
-export class WebpackStack {
+export class Webpack {
   env;
   argv;
   config;
@@ -300,7 +300,7 @@ export class WebpackStack {
       plugins: [
         ...this.config.plugins,
         new HtmlWebpackPlugin({
-          template: './node_modules/@premierstacks/webpack-stack/assets/index.html',
+          template: './node_modules/@tomaschochola/tooling-webpack/assets/index.html',
           filename: 'index.html',
           xhtml: true,
           inject: true,
