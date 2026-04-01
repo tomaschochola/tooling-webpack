@@ -83,7 +83,7 @@ secret:
 devcontainer:
 	devcontainer up
 	devcontainer exec /bin/bash
-	docker compose -f ./docker-compose-devcontainer.yml down --remove-orphans
+	docker compose -f ./docker-compose-devcontainer.yml down --remove-orphans --rmi=local
 
 # Dependencies
 ./package-lock.json ./node_modules: ./package.json
