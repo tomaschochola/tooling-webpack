@@ -2,12 +2,12 @@
   "containerUser": "node",
   "customizations": {
     "vscode": {
-      "extensions": ["EditorConfig.EditorConfig", "Tyriar.sort-lines", "docker.docker", "ms-azuretools.vscode-containers", "ms-vscode.makefile-tools"],
+      "extensions": ["EditorConfig.EditorConfig", "Tyriar.sort-lines", "docker.docker", "ms-vscode.makefile-tools"],
       "settings": {
         "editor.codeActionsOnSave": {
-          "source.addMissingImports.ts": "explicit",
-          "source.fixAll.ts": "explicit",
-          "source.sort.json": "explicit"
+          "source.organizeImports": "always",
+          "source.organizeLinkDefinitions": "always",
+          "source.sort.json": "always"
         },
         "files.insertFinalNewline": true,
         "files.trimFinalNewlines": true,

@@ -13,22 +13,22 @@ export PHP_CS_FIXER_FUTURE_MODE=1
 commit: distclean update fix check
 
 .PHONY: fix
-fix: fix_eslint fix_prettier
+fix: eslint_fix prettier_fix
 
 .PHONY: check
 check: lint audit
 
 .PHONY: lint
-lint: lint_eslint lint_prettier
+lint: eslint_check prettier_check
 
 .PHONY: audit
-audit: audit_npm
+audit: npm_audit
 
 .PHONY: install
-install: install_npm
+install: npm_install
 
 .PHONY: update
-update: update_npm
+update: npm_update
 
 .PHONY: clean
 clean:
@@ -38,35 +38,35 @@ clean:
 distclean: clean
 	git clean -Xfd
 
-.PHONY: fix_eslint
-fix_eslint: ./node_modules ./eslint.config.js
-	npm exec --ignore-scripts --no-progress --no-color --loglevel=warn -- eslint --quiet --concurrency=auto --no-color --fix .
+.PHONY: eslint_fix
+eslint_fix: ./node_modules ./eslint.config.js
+	npm exec --ignore-scripts -- eslint --concurrency=auto --fix .
 
-.PHONY: fix_prettier
-fix_prettier: ./node_modules ./prettier.config.js
-	npm exec --ignore-scripts --no-progress --no-color --loglevel=warn -- prettier --log-level=warn --no-color -w .
+.PHONY: prettier_fix
+prettier_fix: ./node_modules ./prettier.config.js
+	npm exec --ignore-scripts -- prettier -w .
 
-.PHONY: lint_eslint
-lint_eslint: ./node_modules ./eslint.config.js
-	npm exec --ignore-scripts --no-progress --no-color --loglevel=warn -- eslint --quiet --concurrency=auto --no-color .
+.PHONY: eslint_check
+eslint_check: ./node_modules ./eslint.config.js
+	npm exec --ignore-scripts -- eslint --concurrency=auto .
 
-.PHONY: lint_prettier
-lint_prettier: ./node_modules ./prettier.config.js
-	npm exec --ignore-scripts --no-progress --no-color --loglevel=warn -- prettier --log-level=warn --no-color -c .
+.PHONY: prettier_check
+prettier_check: ./node_modules ./prettier.config.js
+	npm exec --ignore-scripts -- prettier -c .
 
-.PHONY: audit_npm
-audit_npm: ./node_modules ./package.json ./package-lock.json
-	npm audit --ignore-scripts --no-progress --no-color --loglevel=warn --audit-level=critical --install-links --include=prod --include=dev --include=peer --include=optional
+.PHONY: npm_audit
+npm_audit: ./node_modules ./package.json ./package-lock.json
+	npm audit --ignore-scripts --audit-level=critical --install-links --include=prod --include=dev --include=peer --include=optional
 
-.PHONY: install_npm
-install_npm: ./package.json ./package-lock.json
-	npm install --ignore-scripts --no-progress --no-color --loglevel=warn --install-links --include=prod --include=dev --include=peer --include=optional
+.PHONY: npm_install
+npm_install: ./package.json ./package-lock.json
+	npm install --ignore-scripts --install-links --include=prod --include=dev --include=peer --include=optional
 
-.PHONY: update_npm
-update_npm: ./package.json
+.PHONY: npm_update
+npm_update: ./package.json
 	rm -rf ./node_modules
 	rm -rf ./package-lock.json
-	npm update --ignore-scripts --no-progress --no-color --loglevel=warn --install-links --include=prod --include=dev --include=peer --include=optional
+	npm update --ignore-scripts --install-links --include=prod --include=dev --include=peer --include=optional
 
 .PHONY: postcreate
 postcreate: install
@@ -83,8 +83,8 @@ secret:
 devcontainer:
 	devcontainer up
 	devcontainer exec /bin/bash
-	docker compose -f ./docker-compose.yml -f ./docker-compose-devcontainer.yml down --remove-orphans
+	docker compose -f ./docker-compose-devcontainer.yml down --remove-orphans
 
 # Dependencies
 ./package-lock.json ./node_modules: ./package.json
-	${MAKE} update_npm
+	${MAKE} npm_update
