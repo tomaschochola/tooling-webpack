@@ -38,7 +38,7 @@ export class Webpack {
         chunkFilename: 'immutable.[contenthash].js',
         assetModuleFilename: 'immutable.[contenthash][ext][query][fragment]',
         clean: true,
-        publicPath: 'auto',
+        publicPath: '/',
       },
       devtool: this.WEBPACK_MODE === 'production' ? 'hidden-nosources-source-map' : 'eval-source-map',
       devServer: {
