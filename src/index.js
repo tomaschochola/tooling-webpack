@@ -113,6 +113,16 @@ export class Webpack {
     });
   }
 
+  output(path) {
+    return this.replace({
+      ...this.config,
+      output: {
+        ...this.config.output,
+        path,
+      },
+    });
+  }
+
   queries() {
     return this.replace({
       ...this.config,
@@ -228,7 +238,7 @@ export class Webpack {
     });
   }
 
-  form(from) {
+  from(from) {
     return this.copy({
       patterns: [
         {
