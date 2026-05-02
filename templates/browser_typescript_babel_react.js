@@ -14,19 +14,15 @@ import { Webpack } from '@tomaschochola/tooling-webpack';
 
 // eslint-disable-next-line no-restricted-exports
 export default function (env, argv) {
-  let webpack = new Webpack(env, argv)
+  const webpack = new Webpack(env, argv)
     .entry({
       index: ['./src/index.ts'],
     })
-    .browserslist()
-    .environment()
-    .define()
-    .html()
-    .copy();
-
-  if (webpack.WEBPACK_MODE === 'production') {
-    webpack = webpack.gzip().brotli();
-  }
+    .defaults({
+      copy: true,
+      html: true,
+      pwa: true,
+    });
 
   return webpack.build();
 }
