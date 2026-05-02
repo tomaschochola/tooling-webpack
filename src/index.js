@@ -45,6 +45,9 @@ export class Webpack {
         host: '0.0.0.0',
         port: 3000,
         historyApiFallback: true,
+        headers: {
+          'Cache-Control': 'max-age=0, no-store',
+        },
         hot: false,
         liveReload: true,
       },
@@ -94,7 +97,7 @@ export class Webpack {
   }
 
   get APP_VERSION() {
-    return this.env.APP_VERSION ?? this.argv.appVersion ?? process.env.APP_VERSION ?? process.env.npm_package_version ?? null;
+    return this.env.APP_VERSION ?? this.argv.appVersion ?? process.env.APP_VERSION ?? process.env.npm_package_version ?? '0.0.0';
   }
 
   replace(config) {
