@@ -32,7 +32,7 @@ export class Webpack {
     this.argv = argv;
 
     this.config = {
-      target: ['web', 'es2020'],
+      target: 'browserslist',
       output: {
         filename: 'immutable.[contenthash].js',
         chunkFilename: 'immutable.[contenthash].js',
@@ -84,30 +84,34 @@ export class Webpack {
     return this.argv.mode ?? 'production';
   }
 
+  get isProduction() {
+    return this.WEBPACK_MODE === 'production';
+  }
+
   get NODE_ENV() {
     return this.argv.nodeEnv ?? 'production';
   }
 
   get APP_ENV() {
-    return this.env.APP_ENV ?? this.argv.appEnv ?? process.env.APP_ENV ?? null;
+    return this.env.APP_ENV ?? this.argv.appEnv ?? process.env.APP_ENV ?? 'production';
   }
 
   get APP_NAME() {
-    return this.env.APP_NAME ?? this.argv.appName ?? process.env.APP_NAME ?? process.env.npm_package_name ?? null;
+    return this.env.APP_NAME ?? this.argv.appName ?? process.env.APP_NAME ?? process.env.npm_package_name ?? 'app';
   }
 
   get APP_VERSION() {
     return this.env.APP_VERSION ?? this.argv.appVersion ?? process.env.APP_VERSION ?? process.env.npm_package_version ?? '0.0.0';
   }
 
-  replace(config) {
+  replaceConfig(config) {
     this.config = { ...config };
 
     return this;
   }
 
-  public(publicPath) {
-    return this.replace({
+  setPublicPath(publicPath) {
+    return this.replaceConfig({
       ...this.config,
       output: {
         ...this.config.output,
@@ -116,8 +120,8 @@ export class Webpack {
     });
   }
 
-  output(path) {
-    return this.replace({
+  setOutputPath(path) {
+    return this.replaceConfig({
       ...this.config,
       output: {
         ...this.config.output,
@@ -126,8 +130,8 @@ export class Webpack {
     });
   }
 
-  queries() {
-    return this.replace({
+  ruleAssetQueries() {
+    return this.replaceConfig({
       ...this.config,
       module: {
         ...this.config.module,
@@ -154,8 +158,14 @@ export class Webpack {
     });
   }
 
-  babel(options = {}) {
-    return this.replace({
+  loaderBabel({
+    exclude = [
+      /node_modules[\\/]core-js/,
+      /node_modules[\\/]webpack[\\/]buildin/,
+    ],
+    ...options
+  } = {}) {
+    return this.replaceConfig({
       ...this.config,
       module: {
         ...this.config.module,
@@ -163,6 +173,7 @@ export class Webpack {
           ...this.config.module.rules,
           {
             test: /\.(tsx|mts|ts|cts|jsx|mjs|js|cjs)$/i,
+            exclude,
             resourceQuery: { not: [/raw/] },
             use: [
               {
@@ -176,8 +187,8 @@ export class Webpack {
     });
   }
 
-  styles() {
-    return this.replace({
+  loaderStyles() {
+    return this.replaceConfig({
       ...this.config,
       module: {
         ...this.config.module,
@@ -201,8 +212,8 @@ export class Webpack {
     });
   }
 
-  htmlLoader(options = {}) {
-    return this.replace({
+  loaderHtml(options = {}) {
+    return this.replaceConfig({
       ...this.config,
       module: {
         ...this.config.module,
@@ -223,8 +234,8 @@ export class Webpack {
     });
   }
 
-  copy(options = {}) {
-    return this.replace({
+  pluginCopy(options = {}) {
+    return this.replaceConfig({
       ...this.config,
       plugins: [
         ...this.config.plugins,
@@ -241,8 +252,8 @@ export class Webpack {
     });
   }
 
-  from(from) {
-    return this.copy({
+  pluginCopyFrom(from) {
+    return this.pluginCopy({
       patterns: [
         {
           from,
@@ -252,8 +263,8 @@ export class Webpack {
     });
   }
 
-  html(options = {}) {
-    return this.replace({
+  pluginHtml(options = {}) {
+    return this.replaceConfig({
       ...this.config,
       plugins: [
         ...this.config.plugins,
@@ -270,8 +281,8 @@ export class Webpack {
     });
   }
 
-  gzip(options = {}) {
-    return this.replace({
+  pluginGzip(options = {}) {
+    return this.replaceConfig({
       ...this.config,
       plugins: [
         ...this.config.plugins,
@@ -286,8 +297,8 @@ export class Webpack {
     });
   }
 
-  brotli(options = {}) {
-    return this.replace({
+  pluginBrotli(options = {}) {
+    return this.replaceConfig({
       ...this.config,
       plugins: [
         ...this.config.plugins,
@@ -302,7 +313,7 @@ export class Webpack {
     });
   }
 
-  environment(options = {
+  pluginEnvironment(options = {
     WEBPACK_MODE: this.WEBPACK_MODE,
     WEBPACK_BUILD: this.WEBPACK_BUILD,
     WEBPACK_SERVE: this.WEBPACK_SERVE,
@@ -312,7 +323,7 @@ export class Webpack {
     APP_NAME: this.APP_NAME,
     APP_VERSION: this.APP_VERSION,
   }) {
-    return this.replace({
+    return this.replaceConfig({
       ...this.config,
       plugins: [
         ...this.config.plugins,
@@ -323,10 +334,10 @@ export class Webpack {
     });
   }
 
-  define(options = {
+  pluginDefine(options = {
     global: 'globalThis',
   }) {
-    return this.replace({
+    return this.replaceConfig({
       ...this.config,
       plugins: [
         ...this.config.plugins,
@@ -337,8 +348,8 @@ export class Webpack {
     });
   }
 
-  entry(options = {}) {
-    return this.replace({
+  setEntry(options = {}) {
+    return this.replaceConfig({
       ...this.config,
       entry: {
         ...this.config.entry,
@@ -347,106 +358,92 @@ export class Webpack {
     });
   }
 
-  browserslist(options = {}) {
-    return this.replace({
-      ...this.config,
-      target: 'browserslist',
-      ...options,
-    });
-  }
-
-  defaults(options = {}) {
+  presetDefaults(options = {}) {
     const {
-      brotli = true,
-      copy = false,
-      define = true,
-      environment = true,
-      gzip = true,
-      html = false,
-      htmlLoader = true,
-      minimizers = true,
-      pwa = false,
-      queries = true,
-      styles = true,
+      loaderTypeScript = false,
+      loaderBabel = !loaderTypeScript,
+      loaderHtml = true,
+      loaderStyles = true,
+      minimizerDefaults = true,
+      pluginBrotli = true,
+      pluginCopy = false,
+      pluginDefine = true,
+      pluginEnvironment = true,
+      pluginGzip = true,
+      pluginHtml = false,
+      pluginPwa = false,
+      ruleAssetQueries = true,
     } = options;
-
-    const useTypescript = options.babel === true ? false : options.typescript === true || options.babel === false;
-    const useBabel = !useTypescript;
-    const useBrowserslist = useBabel;
 
     let webpack = this;
 
-    if (useBrowserslist) {
-      webpack = webpack.browserslist();
+    if (loaderBabel) {
+      webpack = webpack.loaderBabel();
     }
 
-    if (useBabel) {
-      webpack = webpack.babel();
+    if (loaderTypeScript) {
+      webpack = webpack.loaderTypeScript();
     }
 
-    if (useTypescript) {
-      webpack = webpack.typescript();
+    if (pluginEnvironment) {
+      webpack = webpack.pluginEnvironment();
     }
 
-    if (environment) {
-      webpack = webpack.environment();
+    if (pluginDefine) {
+      webpack = webpack.pluginDefine();
     }
 
-    if (define) {
-      webpack = webpack.define();
+    if (loaderStyles) {
+      webpack = webpack.loaderStyles();
     }
 
-    if (styles) {
-      webpack = webpack.styles();
+    if (loaderHtml) {
+      webpack = webpack.loaderHtml();
     }
 
-    if (htmlLoader) {
-      webpack = webpack.htmlLoader();
+    if (ruleAssetQueries) {
+      webpack = webpack.ruleAssetQueries();
     }
 
-    if (queries) {
-      webpack = webpack.queries();
+    if (minimizerDefaults) {
+      webpack = webpack.minimizerDefaults();
     }
 
-    if (minimizers) {
-      webpack = webpack.minimizers();
+    if (pluginHtml) {
+      webpack = webpack.pluginHtml();
     }
 
-    if (html) {
-      webpack = webpack.html();
+    if (pluginCopy) {
+      webpack = webpack.pluginCopy();
     }
 
-    if (copy) {
-      webpack = webpack.copy();
-    }
-
-    if (webpack.WEBPACK_MODE === 'production') {
-      if (gzip) {
-        webpack = webpack.gzip();
+    if (webpack.isProduction) {
+      if (pluginGzip) {
+        webpack = webpack.pluginGzip();
       }
 
-      if (brotli) {
-        webpack = webpack.brotli();
+      if (pluginBrotli) {
+        webpack = webpack.pluginBrotli();
       }
 
-      if (pwa) {
-        webpack = webpack.pwa();
+      if (pluginPwa) {
+        webpack = webpack.pluginPwa();
       }
     }
 
     return webpack;
   }
 
-  minimizers({ terser = {}, css = {}, html = {}, json = {}, images = {} } = {}) {
-    return this.minimizeTerser(terser)
-      .minimizeCss(css)
-      .minimizeHtml(html)
-      .minimizeJson(json)
-      .minimizeImages(images);
+  minimizerDefaults({ terser = {}, css = {}, html = {}, json = {}, images = {} } = {}) {
+    return this.minimizerTerser(terser)
+      .minimizerCss(css)
+      .minimizerHtml(html)
+      .minimizerJson(json)
+      .minimizerImages(images);
   }
 
-  minimizeTerser(options = {}) {
-    return this.replace({
+  minimizerTerser(options = {}) {
+    return this.replaceConfig({
       ...this.config,
       optimization: {
         ...this.config.optimization,
@@ -455,7 +452,7 @@ export class Webpack {
           new TerserPlugin({
             extractComments: false,
             terserOptions: {
-              ecma: 2020,
+              ecma: 2023,
               compress: {
                 drop_console: true,
                 drop_debugger: true,
@@ -472,8 +469,8 @@ export class Webpack {
     });
   }
 
-  minimizeCss(options = {}) {
-    return this.replace({
+  minimizerCss(options = {}) {
+    return this.replaceConfig({
       ...this.config,
       optimization: {
         ...this.config.optimization,
@@ -485,8 +482,8 @@ export class Webpack {
     });
   }
 
-  minimizeHtml(options = {}) {
-    return this.replace({
+  minimizerHtml(options = {}) {
+    return this.replaceConfig({
       ...this.config,
       optimization: {
         ...this.config.optimization,
@@ -498,8 +495,8 @@ export class Webpack {
     });
   }
 
-  minimizeJson(options = {}) {
-    return this.replace({
+  minimizerJson(options = {}) {
+    return this.replaceConfig({
       ...this.config,
       optimization: {
         ...this.config.optimization,
@@ -511,8 +508,8 @@ export class Webpack {
     });
   }
 
-  minimizeImages(options = {}) {
-    return this.replace({
+  minimizerImages(options = {}) {
+    return this.replaceConfig({
       ...this.config,
       optimization: {
         ...this.config.optimization,
@@ -645,8 +642,15 @@ export class Webpack {
     });
   }
 
-  typescript({ compilerOptions = {}, ...options } = {}) {
-    return this.replace({
+  loaderTypeScript({
+    exclude = [
+      /node_modules[\\/]core-js/,
+      /node_modules[\\/]webpack[\\/]buildin/,
+    ],
+    compilerOptions = {},
+    ...options
+  } = {}) {
+    return this.replaceConfig({
       ...this.config,
       module: {
         ...this.config.module,
@@ -654,6 +658,7 @@ export class Webpack {
           ...this.config.module.rules,
           {
             test: /\.(tsx|mts|ts|cts|jsx|mjs|js|cjs)$/i,
+            exclude,
             resourceQuery: { not: [/raw/] },
             use: [
               {
@@ -666,21 +671,24 @@ export class Webpack {
                   compilerOptions: {
                     allowJs: true,
                     allowSyntheticDefaultImports: true,
+                    checkJs: false,
                     declaration: false,
                     declarationMap: false,
                     esModuleInterop: true,
                     jsx: this.WEBPACK_MODE === 'production' ? 'react-jsx' : 'react-jsxdev',
                     module: 'preserve',
+                    moduleDetection: 'force',
                     moduleResolution: 'bundler',
+                    maxNodeModuleJsDepth: 0,
                     resolveJsonModule: true,
                     sourceMap: true,
-                    target: 'es2020',
+                    target: 'es2023',
                     isolatedModules: true,
                     verbatimModuleSyntax: true,
                     allowArbitraryExtensions: true,
                     allowImportingTsExtensions: false,
                     noEmit: false,
-                    noEmitOnError: false,
+                    noEmitOnError: true,
                     ...compilerOptions,
                   },
                 },
@@ -692,8 +700,8 @@ export class Webpack {
     });
   }
 
-  pwa(options = {}) {
-    return this.replace({
+  pluginPwa(options = {}) {
+    return this.replaceConfig({
       ...this.config,
       plugins: [
         ...this.config.plugins,
@@ -717,14 +725,14 @@ export class Webpack {
     });
   }
 
-  merge(callable) {
-    return this.replace({
+  mergeConfig(callable) {
+    return this.replaceConfig({
       ...this.config,
       ...callable(this.env, this.argv, { ...this.config }),
     });
   }
 
-  build() {
+  buildConfig() {
     return { ...this.config };
   }
 }

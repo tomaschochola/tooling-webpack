@@ -15,14 +15,14 @@ import { Webpack } from '@tomaschochola/tooling-webpack';
 // eslint-disable-next-line no-restricted-exports
 export default function (env, argv) {
   const webpack = new Webpack(env, argv)
-    .entry({
+    .setEntry({
       index: ['./src/index.ts'],
     })
-    .defaults({
-      copy: true,
-      html: true,
-      pwa: true,
+    .presetDefaults({
+      pluginCopy: true,
+      pluginHtml: true,
+      pluginPwa: true,
     });
 
-  return webpack.build();
+  return webpack.buildConfig();
 }
