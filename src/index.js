@@ -53,6 +53,9 @@ export class WebpackConfigBuilder {
       },
       experiments: {
         futureDefaults: true,
+        css: true,
+        typescript: false,
+        html: false,
       },
       resolve: {
         extensions: ['.tsx', '.mts', '.ts', '.cts', '.jsx', '.mjs', '.js', '.cjs'],
@@ -108,6 +111,40 @@ export class WebpackConfigBuilder {
     this.#config = { ...config };
 
     return this;
+  }
+
+  #setExperiment(experiment, enabled) {
+    return this.#replaceConfig({
+      ...this.#config,
+      experiments: {
+        ...this.#config.experiments,
+        [experiment]: enabled,
+      },
+    });
+  }
+
+  enableCssExperiment() {
+    return this.#setExperiment('css', true);
+  }
+
+  disableCssExperiment() {
+    return this.#setExperiment('css', false);
+  }
+
+  enableHtmlExperiment() {
+    return this.#setExperiment('html', true);
+  }
+
+  disableHtmlExperiment() {
+    return this.#setExperiment('html', false);
+  }
+
+  enableTypeScriptExperiment() {
+    return this.#setExperiment('typescript', true);
+  }
+
+  disableTypeScriptExperiment() {
+    return this.#setExperiment('typescript', false);
   }
 
   setPublicPath(publicPath) {
