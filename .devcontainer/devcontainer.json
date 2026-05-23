@@ -21,6 +21,7 @@
   },
   "image": "mcr.microsoft.com/devcontainers/typescript-node:24-trixie",
   "init": true,
+  "initializeCommand": "make precreate",
   "postCreateCommand": "make postcreate",
   "remoteUser": "node"
 }

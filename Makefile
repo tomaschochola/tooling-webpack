@@ -68,11 +68,14 @@ npm_update: ./package.json
 	rm -rf ./package-lock.json
 	npm update --ignore-scripts --install-links --include=prod --include=dev --include=peer --include=optional
 
+.PHONY: precreate
+precreate:
+
 .PHONY: postcreate
 postcreate: install
 
 .PHONY: devcontainer
-devcontainer:
+devcontainer: precreate
 	devcontainer up
 	devcontainer exec /bin/bash || true
 	docker ps -q --filter "label=devcontainer.local_folder=$${PWD}" | xargs -r docker stop
