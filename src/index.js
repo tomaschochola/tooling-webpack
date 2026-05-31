@@ -44,7 +44,9 @@ export class WebpackConfigBuilder {
       devServer: {
         host: '0.0.0.0',
         port: 3000,
-        historyApiFallback: true,
+        historyApiFallback: {
+          disableDotRule: true,
+        },
         headers: {
           'Cache-Control': 'max-age=0, no-store',
         },
