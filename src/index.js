@@ -169,6 +169,16 @@ export class WebpackConfigBuilder {
     });
   }
 
+  setDevServerPort(port) {
+    return this.#replaceConfig({
+      ...this.#config,
+      devServer: {
+        ...this.#config.devServer,
+        port,
+      },
+    });
+  }
+
   addAssetQueryRules() {
     return this.#replaceConfig({
       ...this.#config,
