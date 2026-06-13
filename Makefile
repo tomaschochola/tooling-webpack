@@ -1,16 +1,52 @@
-# Default shell
-SHELL := /bin/bash
+# Makefile
+
+SHELL := /usr/bin/env bash
+
+GNUMAKEFLAGS ?=
+
+MAKEFLAGS += --warn-undefined-variables
+MAKEFLAGS += --no-builtin-rules
+MAKEFLAGS += --no-builtin-variables
+
+.SHELLFLAGS := -Eeuo pipefail -c
+
+.DELETE_ON_ERROR:
+.SUFFIXES:
 
 # Default goal
-.DEFAULT_GOAL := never
+
+.DEFAULT_GOAL := help
 
 # Options
+
 export DEBIAN_FRONTEND := noninteractive
-export PHP_CS_FIXER_FUTURE_MODE := 1
 
 # Goals
-.PHONY: commit
-commit: distclean update fix check
+
+.PHONY: help
+.SILENT: help
+help:
+	printf '\033[1m%s\033[0m\n' "$${PWD##*/} targets"
+	printf '%s\n' '--------------------------------------------------------------------------------'
+	printf '\033[1m%-14s\033[0m  %s\n' 'help' 'Show this help.'
+	printf '\033[1m%-14s\033[0m  %s\n' 'fix' 'Run all automatic fixers.'
+	printf '\033[1m%-14s\033[0m  %s\n' 'check' 'Run lint, static analysis, tests, and audits.'
+	printf '\033[1m%-14s\033[0m  %s\n' 'lint' 'Run code style checks.'
+	printf '\033[1m%-14s\033[0m  %s\n' 'audit' 'Run dependency/security audits.'
+	printf '\033[1m%-14s\033[0m  %s\n' 'deps_install' 'Install dependencies from current lock files.'
+	printf '\033[1m%-14s\033[0m  %s\n' 'deps_update' 'Refresh dependencies and generated lock files.'
+	printf '\033[1m%-14s\033[0m  %s\n' 'clean' 'Remove generated build, dependency, and test artifacts.'
+	printf '\033[1m%-14s\033[0m  %s\n' 'distclean' 'Run clean and remove generated lock files.'
+	printf '\033[1m%-14s\033[0m  %s\n' 'eslint_fix' 'Fix JavaScript/TypeScript lint issues with ESLint.'
+	printf '\033[1m%-14s\033[0m  %s\n' 'prettier_fix' 'Format files with Prettier.'
+	printf '\033[1m%-14s\033[0m  %s\n' 'eslint_check' 'Check JavaScript/TypeScript with ESLint.'
+	printf '\033[1m%-14s\033[0m  %s\n' 'prettier_check' 'Check formatting with Prettier.'
+	printf '\033[1m%-14s\033[0m  %s\n' 'npm_audit' 'Run npm audit at the configured severity level.'
+	printf '\033[1m%-14s\033[0m  %s\n' 'npm_install' 'Install npm dependencies from package-lock.json.'
+	printf '\033[1m%-14s\033[0m  %s\n' 'npm_update' 'Refresh npm dependencies and package-lock.json.'
+	printf '\033[1m%-14s\033[0m  %s\n' 'precreate' 'Run pre-devcontainer setup hooks.'
+	printf '\033[1m%-14s\033[0m  %s\n' 'postcreate' 'Run post-devcontainer setup hooks.'
+	printf '\033[1m%-14s\033[0m  %s\n' 'devcontainer' 'Open a devcontainer shell, then stop the container.'
 
 .PHONY: fix
 fix: eslint_fix prettier_fix
@@ -24,11 +60,11 @@ lint: eslint_check prettier_check
 .PHONY: audit
 audit: npm_audit
 
-.PHONY: install
-install: npm_install
+.PHONY: deps_install
+deps_install: npm_install
 
-.PHONY: update
-update: npm_update
+.PHONY: deps_update
+deps_update: npm_update
 
 .PHONY: clean
 clean:
@@ -36,22 +72,22 @@ clean:
 
 .PHONY: distclean
 distclean: clean
-	git clean -Xfd
+	rm -rf ./package-lock.json
 
 .PHONY: eslint_fix
-eslint_fix: ./node_modules ./eslint.config.js
+eslint_fix: ./node_modules ./package.json ./package-lock.json ./eslint.config.js
 	npm exec --ignore-scripts -- eslint --concurrency=auto --fix .
 
 .PHONY: prettier_fix
-prettier_fix: ./node_modules ./prettier.config.js
+prettier_fix: ./node_modules ./package.json ./package-lock.json ./prettier.config.js
 	npm exec --ignore-scripts -- prettier -w .
 
 .PHONY: eslint_check
-eslint_check: ./node_modules ./eslint.config.js
+eslint_check: ./node_modules ./package.json ./package-lock.json ./eslint.config.js
 	npm exec --ignore-scripts -- eslint --concurrency=auto .
 
 .PHONY: prettier_check
-prettier_check: ./node_modules ./prettier.config.js
+prettier_check: ./node_modules ./package.json ./package-lock.json ./prettier.config.js
 	npm exec --ignore-scripts -- prettier -c .
 
 .PHONY: npm_audit
@@ -72,7 +108,7 @@ npm_update: ./package.json
 precreate:
 
 .PHONY: postcreate
-postcreate: install
+postcreate: deps_install
 
 .PHONY: devcontainer
 devcontainer: precreate
@@ -80,13 +116,7 @@ devcontainer: precreate
 	devcontainer exec /bin/bash || true
 	docker ps -q --filter "label=devcontainer.local_folder=$${PWD}" | xargs -r docker stop
 
-.PHONY: prune
-prune:
-	@projects="$$(docker ps -aq --filter "label=devcontainer.local_folder=$${PWD}" | xargs -r docker inspect --format '{{ index .Config.Labels "com.docker.compose.project" }}' | sort -u)"; for project in $$projects; do docker ps -aq --filter "label=com.docker.compose.project=$$project" | xargs -r docker rm -f; done; docker ps -aq --filter "label=devcontainer.local_folder=$${PWD}" | xargs -r docker rm -f
-
-.PHONY: fresh
-fresh: prune devcontainer
-
 # Dependencies
-./package-lock.json ./node_modules: ./package.json
+
+./package-lock.json ./node_modules &: ./package.json
 	${MAKE} npm_update
