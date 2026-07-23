@@ -30,7 +30,7 @@ afterEach(async () => {
   })));
 });
 
-async function compile({ html, indexable }) {
+async function compile({ html, ...robotsOptions }) {
   const context = await mkdtemp(join(tmpdir(), 'tooling-webpack-robots-'));
   const outputPath = join(context, 'dist');
 
@@ -51,9 +51,7 @@ async function compile({ html, indexable }) {
         inject: false,
         templateContent: html,
       }),
-      new RobotsPlugin({
-        indexable,
-      }),
+      new RobotsPlugin(robotsOptions),
     ],
   });
 
@@ -113,4 +111,15 @@ test('updates existing robots metadata without leaving duplicates', async () => 
   assert.equal(output.html.match(/name="robots"/g)?.length, 1);
   assert.match(output.html, /<meta name="robots" content="index, follow" \/>/);
   assert.equal(output.robots, 'User-agent: *\nAllow: /\n');
+});
+
+test('allows custom robots metadata and robots.txt policies', async () => {
+  const output = await compile({
+    html: '<!doctype html><html><head></head><body></body></html>',
+    metaContent: 'noindex, follow',
+    robotsText: 'User-agent: *\nDisallow: /private/\n',
+  });
+
+  assert.match(output.html, /<meta name="robots" content="noindex, follow" \/>/);
+  assert.equal(output.robots, 'User-agent: *\nDisallow: /private/\n');
 });
