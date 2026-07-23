@@ -17,6 +17,7 @@ import HtmlMinimizerPlugin from 'html-minimizer-webpack-plugin';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import ImageMinimizerPlugin from 'image-minimizer-webpack-plugin';
 import JsonMinimizerPlugin from 'json-minimizer-webpack-plugin';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import TerserPlugin from 'terser-webpack-plugin';
 import webpack from 'webpack';
 import WorkboxPlugin from 'workbox-webpack-plugin';
@@ -112,10 +113,12 @@ export class WebpackConfigBuilder {
   #env;
   #argv;
   #config;
+  #ecmaVersion;
 
   constructor({ env = {}, argv = {} } = {}) {
     this.#env = env;
     this.#argv = argv;
+    this.#ecmaVersion = 2025;
 
     this.#config = {
       target: 'browserslist',
@@ -157,6 +160,8 @@ export class WebpackConfigBuilder {
         minimizer: [],
       },
     };
+
+    this.setOutputPath();
   }
 
   get webpackBuild() {
@@ -245,12 +250,18 @@ export class WebpackConfigBuilder {
     });
   }
 
-  setOutputPath(path) {
+  setEcmaVersion(ecmaVersion) {
+    this.#ecmaVersion = ecmaVersion;
+
+    return this;
+  }
+
+  setOutputPath(path = new URL(`./dist/${this.appEnv}/`, pathToFileURL(`${process.cwd()}/`))) {
     return this.#replaceConfig({
       ...this.#config,
       output: {
         ...this.#config.output,
-        path,
+        path: path instanceof URL ? fileURLToPath(path) : path,
       },
     });
   }
@@ -541,8 +552,8 @@ export class WebpackConfigBuilder {
             extractComments: false,
             ...options,
             minimizerOptions: {
-              ecma: 2025,
               ...configuredOptions,
+              ecma: this.#ecmaVersion,
               compress: configuredOptions.compress === false
                 ? false
                 : {

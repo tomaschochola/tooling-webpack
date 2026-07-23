@@ -15,10 +15,14 @@ import { test } from 'node:test';
 
 import { WebpackConfigBuilder } from '../src/index.js';
 
-function createTerserPlugin(options) {
-  const config = new WebpackConfigBuilder()
-    .addTerserMinimizer(options)
-    .toConfig();
+function createTerserPlugin(options, ecmaVersion) {
+  let tooling = new WebpackConfigBuilder();
+
+  if (ecmaVersion !== undefined) {
+    tooling = tooling.setEcmaVersion(ecmaVersion);
+  }
+
+  const config = tooling.addTerserMinimizer(options).toConfig();
 
   return config.optimization.minimizer[0];
 }
@@ -43,7 +47,7 @@ test('merges custom minimizer options with the production defaults', () => {
   const plugin = createTerserPlugin({
     extractComments: true,
     minimizerOptions: {
-      ecma: 2024,
+      ecma: 2015,
       compress: {
         drop_console: false,
         passes: 2,
@@ -52,7 +56,7 @@ test('merges custom minimizer options with the production defaults', () => {
         ascii_only: true,
       },
     },
-  });
+  }, 2024);
 
   assert.equal(plugin.options.extractComments, true);
   assert.deepEqual(plugin.options.minimizer.options, {
@@ -72,11 +76,10 @@ test('merges custom minimizer options with the production defaults', () => {
 test('normalizes the deprecated terserOptions alias', () => {
   const plugin = createTerserPlugin({
     terserOptions: {
-      ecma: 2020,
       compress: false,
       format: null,
     },
-  });
+  }, 2020);
 
   assert.deepEqual(plugin.options.minimizer.options, {
     ecma: 2020,
