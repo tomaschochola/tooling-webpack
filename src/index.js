@@ -514,7 +514,23 @@ export class WebpackConfigBuilder {
     });
   }
 
-  addTerserMinimizer(options = {}) {
+  addTerserMinimizer({
+    minimizerOptions,
+    terserOptions,
+    ...options
+  } = {}) {
+    const configuredOptions = minimizerOptions ?? terserOptions ?? {};
+
+    const defaultCompressOptions = {
+      drop_console: true,
+      drop_debugger: true,
+      passes: 5,
+    };
+
+    const defaultFormatOptions = {
+      comments: false,
+    };
+
     return this.#replaceConfig({
       ...this.#config,
       optimization: {
@@ -523,18 +539,23 @@ export class WebpackConfigBuilder {
           ...(this.#config.optimization.minimizer ?? []),
           new TerserPlugin({
             extractComments: false,
-            terserOptions: {
-              ecma: 2023,
-              compress: {
-                drop_console: true,
-                drop_debugger: true,
-                passes: 5,
-              },
-              format: {
-                comments: false,
-              },
-            },
             ...options,
+            minimizerOptions: {
+              ecma: 2025,
+              ...configuredOptions,
+              compress: configuredOptions.compress === false
+                ? false
+                : {
+                    ...defaultCompressOptions,
+                    ...configuredOptions.compress,
+                  },
+              format: configuredOptions.format === null
+                ? null
+                : {
+                    ...defaultFormatOptions,
+                    ...configuredOptions.format,
+                  },
+            },
           }),
         ],
       },
