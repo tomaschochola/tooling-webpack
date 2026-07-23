@@ -179,6 +179,16 @@ export class WebpackConfigBuilder {
     });
   }
 
+  setDevServerServer(server) {
+    return this.#replaceConfig({
+      ...this.#config,
+      devServer: {
+        ...this.#config.devServer,
+        server,
+      },
+    });
+  }
+
   addAssetQueryRules() {
     return this.#replaceConfig({
       ...this.#config,
