@@ -53,10 +53,13 @@ help:
 fix: eslint_fix prettier_fix
 
 .PHONY: check
-check: lint audit
+check: lint test audit
 
 .PHONY: lint
 lint: eslint_check prettier_check
+
+.PHONY: test
+test: node_test
 
 .PHONY: audit
 audit: npm_audit
@@ -90,6 +93,10 @@ eslint_check: ./node_modules ./package.json ./package-lock.json ./eslint.config.
 .PHONY: prettier_check
 prettier_check: ./node_modules ./package.json ./package-lock.json ./prettier.config.js
 	npm exec --ignore-scripts -- prettier -c .
+
+.PHONY: node_test
+node_test: ./node_modules ./package.json ./package-lock.json
+	node --test
 
 .PHONY: npm_audit
 npm_audit: ./node_modules ./package.json ./package-lock.json
