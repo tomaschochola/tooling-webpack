@@ -51,7 +51,7 @@ export class WebpackConfigBuilder {
     addDefinePlugin(options?: {}): this;
     setEntries(entries?: {}): this;
     addEntries(entries?: {}): this;
-    addTerserMinimizer({ minimizerOptions, terserOptions, ...options }?: {}): this;
+    addTerserMinimizer(configuration?: {}): this;
     addCssMinimizer(options?: {}): this;
     addHtmlMinimizer(options?: {}): this;
     addJsonMinimizer(options?: {}): this;

@@ -529,11 +529,13 @@ export class WebpackConfigBuilder {
     });
   }
 
-  addTerserMinimizer({
-    minimizerOptions,
-    terserOptions,
-    ...options
-  } = {}) {
+  addTerserMinimizer(configuration = {}) {
+    const {
+      minimizerOptions,
+      terserOptions,
+      ...options
+    } = configuration;
+
     const configuredOptions = minimizerOptions ?? terserOptions ?? {};
 
     const defaultCompressOptions = {
