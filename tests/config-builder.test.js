@@ -124,7 +124,7 @@ test('keeps the global compatibility definition with custom definitions', () => 
   });
 });
 
-test('precompresses nontrivial assets whenever compression does not increase their size', () => {
+test('precompresses nontrivial assets whenever compression reduces their size', () => {
   const config = new WebpackConfigBuilder()
     .addGzipCompressionPlugin()
     .addBrotliCompressionPlugin()
@@ -133,7 +133,7 @@ test('precompresses nontrivial assets whenever compression does not increase the
   const [gzip, brotli] = config.plugins;
 
   assert.equal(gzip.options.threshold, 1024);
-  assert.equal(gzip.options.minRatio, 1);
+  assert.equal(gzip.options.minRatio, 1 - Number.EPSILON);
   assert.equal(brotli.options.threshold, 1024);
-  assert.equal(brotli.options.minRatio, 1);
+  assert.equal(brotli.options.minRatio, 1 - Number.EPSILON);
 });
