@@ -143,7 +143,7 @@ export class WebpackConfigBuilder {
         liveReload: true,
       },
       experiments: {
-        futureDefaults: true,
+        futureDefaults: false,
         css: true,
         typescript: false,
         html: false,
@@ -185,19 +185,19 @@ export class WebpackConfigBuilder {
   }
 
   get nodeEnv() {
-    return this.#argv.nodeEnv ?? 'production';
+    return this.#argv.nodeEnv ?? process.env.NODE_ENV ?? this.webpackMode;
   }
 
   get appEnv() {
-    return this.#env.APP_ENV ?? this.#argv.appEnv ?? process.env.APP_ENV ?? 'production';
+    return this.#env.APP_ENV ?? process.env.APP_ENV ?? 'production';
   }
 
   get appName() {
-    return this.#env.APP_NAME ?? this.#argv.appName ?? process.env.APP_NAME ?? process.env.npm_package_name ?? 'app';
+    return this.#env.APP_NAME ?? process.env.APP_NAME ?? process.env.npm_package_name ?? 'app';
   }
 
   get appVersion() {
-    return this.#env.APP_VERSION ?? this.#argv.appVersion ?? process.env.APP_VERSION ?? process.env.npm_package_version ?? '0.0.0';
+    return this.#env.APP_VERSION || process.env.APP_VERSION || process.env.npm_package_version || '0.0.0';
   }
 
   #replaceConfig(config) {
@@ -494,14 +494,13 @@ export class WebpackConfigBuilder {
     });
   }
 
-  addDefinePlugin(options = {
-    global: 'globalThis',
-  }) {
+  addDefinePlugin(options = {}) {
     return this.#replaceConfig({
       ...this.#config,
       plugins: [
         ...this.#config.plugins,
         new webpack.DefinePlugin({
+          global: 'globalThis',
           ...options,
         }),
       ],

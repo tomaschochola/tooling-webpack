@@ -18,10 +18,6 @@ MAKEFLAGS += --no-builtin-variables
 
 .DEFAULT_GOAL := help
 
-# Options
-
-export DEBIAN_FRONTEND := noninteractive
-
 # Goals
 
 .PHONY: help
