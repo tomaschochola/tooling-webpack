@@ -123,3 +123,17 @@ test('keeps the global compatibility definition with custom definitions', () => 
     TEST_VALUE: '"test"',
   });
 });
+
+test('precompresses nontrivial assets whenever compression does not increase their size', () => {
+  const config = new WebpackConfigBuilder()
+    .addGzipCompressionPlugin()
+    .addBrotliCompressionPlugin()
+    .toConfig();
+
+  const [gzip, brotli] = config.plugins;
+
+  assert.equal(gzip.options.threshold, 1024);
+  assert.equal(gzip.options.minRatio, 1);
+  assert.equal(brotli.options.threshold, 1024);
+  assert.equal(brotli.options.minRatio, 1);
+});

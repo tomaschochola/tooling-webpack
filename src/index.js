@@ -458,8 +458,9 @@ export class WebpackConfigBuilder {
         new CompressionPlugin({
           algorithm: 'gzip',
           compressionOptions: { level: 9 },
-          minRatio: 0.8,
           filename: '[path][base].gz[query][fragment]',
+          minRatio: 1,
+          threshold: 1024,
           ...options,
         }),
       ],
@@ -474,8 +475,9 @@ export class WebpackConfigBuilder {
         new CompressionPlugin({
           algorithm: 'brotliCompress',
           compressionOptions: { [constants.BROTLI_PARAM_QUALITY]: constants.BROTLI_MAX_QUALITY },
-          minRatio: 0.8,
           filename: '[path][base].br[query][fragment]',
+          minRatio: 1,
+          threshold: 1024,
           ...options,
         }),
       ],
