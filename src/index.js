@@ -23,6 +23,8 @@ import webpack from 'webpack';
 import WorkboxPlugin from 'workbox-webpack-plugin';
 import { constants } from 'zlib';
 
+export { browserArtifactDefaults, generateBrowserArtifacts } from './browser-artifacts/node.js';
+
 const robotsMetaPattern = /<meta\b(?=[^>]*\sname\s*=\s*(?:"robots"|'robots'|robots(?=[\s/>])))[^>]*>/gi;
 
 function escapeHtmlAttribute(value) {
