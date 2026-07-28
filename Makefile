@@ -29,7 +29,6 @@ help:
 	printf '\033[1m%-14s\033[0m  %s\n' 'fix' 'Run all automatic fixers.'
 	printf '\033[1m%-14s\033[0m  %s\n' 'check' 'Run lint, static analysis, tests, and audits.'
 	printf '\033[1m%-14s\033[0m  %s\n' 'lint' 'Run code style checks.'
-	printf '\033[1m%-14s\033[0m  %s\n' 'static' 'Generate TypeScript declarations.'
 	printf '\033[1m%-14s\033[0m  %s\n' 'audit' 'Run dependency/security audits.'
 	printf '\033[1m%-14s\033[0m  %s\n' 'deps_install' 'Install dependencies from current lock files.'
 	printf '\033[1m%-14s\033[0m  %s\n' 'deps_update' 'Refresh dependencies and generated lock files.'
@@ -39,7 +38,6 @@ help:
 	printf '\033[1m%-14s\033[0m  %s\n' 'prettier_fix' 'Format files with Prettier.'
 	printf '\033[1m%-14s\033[0m  %s\n' 'eslint_check' 'Check JavaScript/TypeScript with ESLint.'
 	printf '\033[1m%-14s\033[0m  %s\n' 'prettier_check' 'Check formatting with Prettier.'
-	printf '\033[1m%-14s\033[0m  %s\n' 'typescript_build' 'Generate TypeScript declarations.'
 	printf '\033[1m%-14s\033[0m  %s\n' 'npm_audit' 'Run npm audit at the configured severity level.'
 	printf '\033[1m%-14s\033[0m  %s\n' 'npm_install' 'Install npm dependencies from package-lock.json.'
 	printf '\033[1m%-14s\033[0m  %s\n' 'npm_update' 'Refresh npm dependencies and package-lock.json.'
@@ -51,13 +49,10 @@ help:
 fix: eslint_fix prettier_fix
 
 .PHONY: check
-check: lint static test audit
+check: lint test audit
 
 .PHONY: lint
 lint: eslint_check prettier_check
-
-.PHONY: static
-static: typescript_build
 
 .PHONY: test
 test: node_test
@@ -94,10 +89,6 @@ eslint_check: ./node_modules ./package.json ./package-lock.json ./eslint.config.
 .PHONY: prettier_check
 prettier_check: ./node_modules ./package.json ./package-lock.json ./prettier.config.js
 	npm exec --ignore-scripts -- prettier -c .
-
-.PHONY: typescript_build
-typescript_build: ./node_modules ./package.json ./package-lock.json ./tsconfig.types.json
-	npm exec --ignore-scripts -- tsc --project ./tsconfig.types.json
 
 .PHONY: node_test
 node_test: ./node_modules ./package.json ./package-lock.json

@@ -48,8 +48,7 @@
   "description": "@tomaschochola/tooling-webpack",
   "devDependencies": {
     "@tomaschochola/tooling-eslint": "github:tomaschochola/tooling-eslint#1.x",
-    "@tomaschochola/tooling-prettier": "github:tomaschochola/tooling-prettier#1.x",
-    "typescript": "^6.0.3"
+    "@tomaschochola/tooling-prettier": "github:tomaschochola/tooling-prettier#1.x"
   },
   "funding": {
     "type": "github",
@@ -69,5 +68,5 @@
   "repository": "github:tomaschochola/tooling-webpack",
   "sideEffects": false,
   "type": "module",
-  "types": "./types/index.d.ts"
+  "types": "./src/browser-artifacts/browser.ts"
 }
