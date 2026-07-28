@@ -7,10 +7,10 @@
     "emitDeclarationOnly": true,
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "outDir": "./types",
+    "outDir": "./types/generated",
     "rootDir": "./src",
     "skipLibCheck": true,
     "target": "ES2024"
   },
-  "include": ["./src/index.js"]
+  "include": ["./src/browser-artifacts/browser.ts", "./src/index.js"]
 }

@@ -24,7 +24,6 @@ import WorkboxPlugin from 'workbox-webpack-plugin';
 import { constants } from 'zlib';
 
 export { browserArtifactDefaults, generateBrowserArtifacts } from './browser-artifacts/node.js';
-export * from './browser-artifacts/browser.ts';
 
 const robotsMetaPattern = /<meta\b(?=[^>]*\sname\s*=\s*(?:"robots"|'robots'|robots(?=[\s/>])))[^>]*>/gi;
 
