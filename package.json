@@ -11,7 +11,7 @@
   "bin": {
     "browser-artifacts": "./src/browser-artifacts/cli.js"
   },
-  "browser": "./src/browser-artifacts/browser.ts",
+  "browser": "./src/browser.ts",
   "contributors": [
     {
       "email": "tomaschochola@tomaschochola.cz",
@@ -68,5 +68,5 @@
   "repository": "github:tomaschochola/tooling-webpack",
   "sideEffects": false,
   "type": "module",
-  "types": "./src/browser-artifacts/browser.ts"
+  "types": "./src/browser.ts"
 }
