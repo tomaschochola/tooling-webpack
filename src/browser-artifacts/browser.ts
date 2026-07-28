@@ -65,7 +65,10 @@ export interface BrowserArtifactElement<Input> extends HTMLElement {
 
 export interface BrowserArtifactRenderContext {
   readonly root: HTMLElement;
-  readonly mount: <Input>(element: BrowserArtifactElement<Input>, input: Input) => Promise<void>;
+  readonly mount: {
+    (element: HTMLElement): Promise<void>;
+    <Input>(element: BrowserArtifactElement<Input>, input: Input): Promise<void>;
+  };
 }
 
 type BrowserArtifactRender = (context: BrowserArtifactRenderContext) => Promise<void> | void;
@@ -147,19 +150,6 @@ function validateSize(size: BrowserArtifactSize): void {
   }
 }
 
-async function mount<Input>(
-  root: HTMLElement,
-  element: BrowserArtifactElement<Input>,
-  input: Input,
-): Promise<void> {
-  if (!(element instanceof HTMLElement) || typeof element.render !== 'function') {
-    throw new TypeError('Mounted browser artifact elements must be HTMLElements exposing render(input).');
-  }
-
-  root.replaceChildren(element);
-  await element.render(input);
-}
-
 function findOrCreateRoot(): HTMLElement {
   const candidates = document.querySelectorAll('[data-browser-artifact-root]');
 
@@ -229,12 +219,33 @@ const runtime: BrowserArtifactRuntime = Object.freeze({
 
     const root = findOrCreateRoot();
 
+    function mountElement(element: HTMLElement): Promise<void>;
+    function mountElement<Input>(element: BrowserArtifactElement<Input>, input: Input): Promise<void>;
+    async function mountElement<Input>(
+      element: BrowserArtifactElement<Input> | HTMLElement,
+      input?: Input,
+    ): Promise<void> {
+      if (!(element instanceof HTMLElement)) {
+        throw new TypeError('Mounted browser artifacts must be HTML elements.');
+      }
+
+      root.replaceChildren(element);
+
+      if (arguments.length === 2) {
+        const render = Reflect.get(element, 'render');
+
+        if (typeof render !== 'function') {
+          throw new TypeError('Browser artifacts mounted with input must expose render(input).');
+        }
+
+        await Reflect.apply(render, element, [input]);
+      }
+    }
+
     await artifact.render(
       Object.freeze({
+        mount: mountElement,
         root,
-        mount: async <Input>(element: BrowserArtifactElement<Input>, input: Input): Promise<void> => {
-          await mount(root, element, input);
-        },
       }),
     );
   },

@@ -11,3 +11,5 @@
  */
 
 export * from './browser-artifacts/browser';
+export * from './browser-artifacts/components/default-print-page';
+export * from './browser-artifacts/components/default-social-card';
