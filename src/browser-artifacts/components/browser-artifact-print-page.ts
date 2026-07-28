@@ -10,12 +10,15 @@
  * @see {@link https://github.com/sponsors/tomaschochola} GitHub Sponsors
  */
 
-import stylesheet from './default-print-page.scss' with { type: 'css' };
+import stylesheet from './browser-artifact-print-page.scss' with { type: 'css' };
 
-export class DefaultPrintPage extends HTMLElement {
+export const BROWSER_ARTIFACT_PRINT_PAGE_TAG_NAME = 'browser-artifact-print-page' as const;
+
+export class BrowserArtifactPrintPageElement extends HTMLElement {
   public constructor() {
     super();
 
+    const document = this.ownerDocument;
     const root = this.attachShadow({
       mode: 'open',
     });
@@ -24,8 +27,16 @@ export class DefaultPrintPage extends HTMLElement {
 
     main.append(slot);
     root.adoptedStyleSheets = [stylesheet];
-    root.replaceChildren(main);
+    root.append(main);
   }
 }
 
-customElements.define('browser-artifact-default-print-page', DefaultPrintPage);
+export function defineBrowserArtifactPrintPage(registry: CustomElementRegistry): void {
+  registry.define(BROWSER_ARTIFACT_PRINT_PAGE_TAG_NAME, BrowserArtifactPrintPageElement);
+}
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'browser-artifact-print-page': BrowserArtifactPrintPageElement;
+  }
+}

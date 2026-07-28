@@ -420,9 +420,9 @@ async function compileBrowserEntries({ entries, outputDirectory, projectDirector
     .setPublicPath('./')
     .setOutputPath(outputDirectory)
     .addBabelLoader()
-    .addAssetQueryRules()
     .addStyleLoaders()
     .addHtmlLoader()
+    .addAssetQueryRules()
     .addHtmlPlugin({
       filename: 'index.html',
       template,

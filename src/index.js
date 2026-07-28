@@ -346,6 +346,17 @@ export class WebpackConfigBuilder {
   }
 
   addStyleLoaders() {
+    const assetQuery = /^\?(?:asset|inline|resource|source)$/;
+
+    const loaders = [
+      {
+        loader: 'postcss-loader',
+      },
+      {
+        loader: 'sass-loader',
+      },
+    ];
+
     return this.#replaceConfig({
       ...this.#config,
       module: {
@@ -354,14 +365,15 @@ export class WebpackConfigBuilder {
           ...this.#config.module.rules,
           {
             test: /\.(sass|scss|css)$/i,
-            resourceQuery: { not: [/raw/] },
-            type: 'css/auto',
-            use: [
+            oneOf: [
               {
-                loader: 'postcss-loader',
+                resourceQuery: assetQuery,
+                use: loaders,
               },
               {
-                loader: 'sass-loader',
+                resourceQuery: { not: [/raw/] },
+                type: 'css/auto',
+                use: loaders,
               },
             ],
           },

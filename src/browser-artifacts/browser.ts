@@ -59,38 +59,26 @@ export interface BrowserArtifactPngOptions {
   readonly transparent?: boolean;
 }
 
-export interface BrowserArtifactElement<Input> extends HTMLElement {
-  render(input: Input): Promise<void> | void;
-}
-
-export interface BrowserArtifactRenderContext {
-  readonly root: HTMLElement;
-  readonly mount: {
-    (element: HTMLElement): Promise<void>;
-    <Input>(element: BrowserArtifactElement<Input>, input: Input): Promise<void>;
-  };
-}
-
-type BrowserArtifactRender = (context: BrowserArtifactRenderContext) => Promise<void> | void;
+export type BrowserArtifactCompose = (root: HTMLElement) => Promise<void> | void;
 
 export interface BrowserArtifactDefinitions {
   readonly pdf: (
     output: string,
     viewport: BrowserArtifactSize,
-    render: BrowserArtifactRender,
+    compose: BrowserArtifactCompose,
     options?: BrowserArtifactPdfOptions,
   ) => void;
   readonly png: (
     output: string,
     size: BrowserArtifactSize,
-    render: BrowserArtifactRender,
+    compose: BrowserArtifactCompose,
     options?: BrowserArtifactPngOptions,
   ) => void;
 }
 
 interface BrowserArtifactBase {
+  readonly compose: BrowserArtifactCompose;
   readonly output: string;
-  readonly render: BrowserArtifactRender;
   readonly viewport: BrowserArtifactSize;
 }
 
@@ -107,8 +95,8 @@ interface BrowserArtifactPng extends BrowserArtifactBase {
 type BrowserArtifact = BrowserArtifactPdf | BrowserArtifactPng;
 
 type BrowserArtifactMetadata =
-  | Omit<BrowserArtifactPdf, 'render'>
-  | Omit<BrowserArtifactPng, 'render'>;
+  | Omit<BrowserArtifactPdf, 'compose'>
+  | Omit<BrowserArtifactPng, 'compose'>;
 
 interface BrowserArtifactRuntime {
   list(): readonly BrowserArtifactMetadata[];
@@ -167,7 +155,7 @@ function findOrCreateRoot(): HTMLElement {
     return candidate;
   }
 
-  const root = document.createElement('main');
+  const root = document.createElement('div');
   root.setAttribute('data-browser-artifact-root', '');
   document.body.append(root);
 
@@ -219,35 +207,7 @@ const runtime: BrowserArtifactRuntime = Object.freeze({
 
     const root = findOrCreateRoot();
 
-    function mountElement(element: HTMLElement): Promise<void>;
-    function mountElement<Input>(element: BrowserArtifactElement<Input>, input: Input): Promise<void>;
-    async function mountElement<Input>(
-      element: BrowserArtifactElement<Input> | HTMLElement,
-      input?: Input,
-    ): Promise<void> {
-      if (!(element instanceof HTMLElement)) {
-        throw new TypeError('Mounted browser artifacts must be HTML elements.');
-      }
-
-      root.replaceChildren(element);
-
-      if (arguments.length === 2) {
-        const render = Reflect.get(element, 'render');
-
-        if (typeof render !== 'function') {
-          throw new TypeError('Browser artifacts mounted with input must expose render(input).');
-        }
-
-        await Reflect.apply(render, element, [input]);
-      }
-    }
-
-    await artifact.render(
-      Object.freeze({
-        mount: mountElement,
-        root,
-      }),
-    );
+    await artifact.compose(root);
   },
 });
 
@@ -268,7 +228,7 @@ export function defineBrowserArtifacts(definition: (artifacts: BrowserArtifactDe
     pdf: (
       output: string,
       viewport: BrowserArtifactSize,
-      render: BrowserArtifactRender,
+      compose: BrowserArtifactCompose,
       options: BrowserArtifactPdfOptions = {},
     ): void => {
       validateOutput(output, '.pdf');
@@ -278,13 +238,14 @@ export function defineBrowserArtifacts(definition: (artifacts: BrowserArtifactDe
         throw new Error(`Browser artifact output is already defined: ${output}`);
       }
 
-      if (typeof render !== 'function') {
-        throw new TypeError(`Browser artifact render must be a function: ${output}`);
+      if (typeof compose !== 'function') {
+        throw new TypeError(`Browser artifact compose callback must be a function: ${output}`);
       }
 
       outputs.add(output);
       artifacts.push(
         Object.freeze({
+          compose,
           options: Object.freeze({
             ...options,
             ...(options.margin === undefined
@@ -294,7 +255,6 @@ export function defineBrowserArtifacts(definition: (artifacts: BrowserArtifactDe
                 }),
           }),
           output,
-          render,
           type: 'pdf',
           viewport: Object.freeze({ ...viewport }),
         }),
@@ -303,7 +263,7 @@ export function defineBrowserArtifacts(definition: (artifacts: BrowserArtifactDe
     png: (
       output: string,
       size: BrowserArtifactSize,
-      render: BrowserArtifactRender,
+      compose: BrowserArtifactCompose,
       options: BrowserArtifactPngOptions = {},
     ): void => {
       validateOutput(output, '.png');
@@ -313,16 +273,16 @@ export function defineBrowserArtifacts(definition: (artifacts: BrowserArtifactDe
         throw new Error(`Browser artifact output is already defined: ${output}`);
       }
 
-      if (typeof render !== 'function') {
-        throw new TypeError(`Browser artifact render must be a function: ${output}`);
+      if (typeof compose !== 'function') {
+        throw new TypeError(`Browser artifact compose callback must be a function: ${output}`);
       }
 
       outputs.add(output);
       artifacts.push(
         Object.freeze({
+          compose,
           options: Object.freeze({ ...options }),
           output,
-          render,
           type: 'png',
           viewport: Object.freeze({ ...size }),
         }),
