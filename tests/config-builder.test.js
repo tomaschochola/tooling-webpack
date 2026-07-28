@@ -137,3 +137,21 @@ test('precompresses nontrivial assets whenever compression reduces their size', 
   assert.equal(brotli.options.threshold, 1024);
   assert.equal(brotli.options.minRatio, 1 - Number.EPSILON);
 });
+
+test('does not expose a service worker source map by default', () => {
+  const config = new WebpackConfigBuilder()
+    .addWorkboxServiceWorkerPlugin()
+    .toConfig();
+
+  assert.equal(config.plugins[0].config.sourcemap, false);
+});
+
+test('allows a service worker source map to be enabled explicitly', () => {
+  const config = new WebpackConfigBuilder()
+    .addWorkboxServiceWorkerPlugin({
+      sourcemap: true,
+    })
+    .toConfig();
+
+  assert.equal(config.plugins[0].config.sourcemap, true);
+});

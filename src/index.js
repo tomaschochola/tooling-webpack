@@ -806,6 +806,7 @@ export class WebpackConfigBuilder {
           skipWaiting: true,
           cleanupOutdatedCaches: true,
           maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
+          sourcemap: false,
           swDest: 'sw.js',
           navigateFallback: '/index.html',
           navigateFallbackDenylist: [
