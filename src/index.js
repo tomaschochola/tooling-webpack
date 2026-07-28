@@ -117,18 +117,12 @@ export class WebpackConfigBuilder {
   #argv;
   #config;
   #ecmaVersion;
-  #htmlLoaderConfigured;
-  #scriptLoaderMethod;
-  #styleLoadersConfigured;
   #terserMinimizerOptions;
 
   constructor({ env = {}, argv = {} } = {}) {
     this.#env = env;
     this.#argv = argv;
     this.#ecmaVersion = 2025;
-    this.#htmlLoaderConfigured = false;
-    this.#scriptLoaderMethod = undefined;
-    this.#styleLoadersConfigured = false;
     this.#terserMinimizerOptions = [];
 
     this.#config = {
@@ -227,35 +221,15 @@ export class WebpackConfigBuilder {
     });
   }
 
-  #registerScriptLoader(method) {
-    if (this.#config.experiments.typescript) {
-      throw new Error(`${method}() cannot be combined with the TypeScript experiment.`);
-    }
-
-    if (this.#scriptLoaderMethod !== undefined) {
-      throw new Error(`A script loader is already configured with ${this.#scriptLoaderMethod}().`);
-    }
-
-    this.#scriptLoaderMethod = method;
-  }
-
   enableCssExperiment() {
     return this.#setExperiment('css', true);
   }
 
   disableCssExperiment() {
-    if (this.#styleLoadersConfigured) {
-      throw new Error('The CSS experiment cannot be disabled after addStyleLoaders().');
-    }
-
     return this.#setExperiment('css', false);
   }
 
   enableHtmlExperiment() {
-    if (this.#htmlLoaderConfigured) {
-      throw new Error('The HTML experiment and addHtmlLoader() are alternative HTML module implementations.');
-    }
-
     return this.#setExperiment('html', true);
   }
 
@@ -264,12 +238,6 @@ export class WebpackConfigBuilder {
   }
 
   enableTypeScriptExperiment() {
-    if (this.#scriptLoaderMethod !== undefined) {
-      throw new Error(
-        `The TypeScript experiment cannot be combined with ${this.#scriptLoaderMethod}().`,
-      );
-    }
-
     return this.#setExperiment('typescript', true);
   }
 
@@ -362,8 +330,6 @@ export class WebpackConfigBuilder {
     ],
     ...options
   } = {}) {
-    this.#registerScriptLoader('addBabelLoader');
-
     return this.#replaceConfig({
       ...this.#config,
       module: {
@@ -387,16 +353,6 @@ export class WebpackConfigBuilder {
   }
 
   addStyleLoaders() {
-    if (!this.#config.experiments.css) {
-      throw new Error('addStyleLoaders() requires the CSS experiment.');
-    }
-
-    if (this.#styleLoadersConfigured) {
-      throw new Error('addStyleLoaders() may only be configured once.');
-    }
-
-    this.#styleLoadersConfigured = true;
-
     const loaders = [
       {
         loader: 'postcss-loader',
@@ -432,16 +388,6 @@ export class WebpackConfigBuilder {
   }
 
   addHtmlLoader(options = {}) {
-    if (this.#config.experiments.html) {
-      throw new Error('addHtmlLoader() and the HTML experiment are alternative HTML module implementations.');
-    }
-
-    if (this.#htmlLoaderConfigured) {
-      throw new Error('addHtmlLoader() may only be configured once.');
-    }
-
-    this.#htmlLoaderConfigured = true;
-
     return this.#replaceConfig({
       ...this.#config,
       module: {
@@ -835,8 +781,6 @@ export class WebpackConfigBuilder {
     compilerOptions = {},
     ...options
   } = {}) {
-    this.#registerScriptLoader('addTypeScriptLoader');
-
     return this.#replaceConfig({
       ...this.#config,
       module: {
