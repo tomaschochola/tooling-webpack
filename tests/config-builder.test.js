@@ -124,6 +124,87 @@ test('keeps the global compatibility definition with custom definitions', () => 
   });
 });
 
+test('resolves the HTML public path from the final output configuration', () => {
+  const setThenAdd = new WebpackConfigBuilder()
+    .setPublicPath('./')
+    .addHtmlPlugin()
+    .toConfig();
+
+  const addThenSet = new WebpackConfigBuilder()
+    .addHtmlPlugin()
+    .setPublicPath('./')
+    .toConfig();
+
+  assert.equal(setThenAdd.output.publicPath, './');
+  assert.equal(setThenAdd.plugins[0].options.publicPath, 'auto');
+  assert.equal(addThenSet.output.publicPath, './');
+  assert.equal(addThenSet.plugins[0].options.publicPath, 'auto');
+});
+
+test('updates configured Terser minimizers when the ECMAScript version changes', () => {
+  const setThenAdd = new WebpackConfigBuilder()
+    .setEcmaVersion(2022)
+    .addTerserMinimizer()
+    .toConfig();
+
+  const addThenSet = new WebpackConfigBuilder()
+    .addTerserMinimizer()
+    .setEcmaVersion(2022)
+    .toConfig();
+
+  assert.equal(setThenAdd.optimization.minimizer[0].options.minimizer.options.ecma, 2022);
+  assert.equal(addThenSet.optimization.minimizer[0].options.minimizer.options.ecma, 2022);
+});
+
+test('rejects incompatible script processing configurations', () => {
+  assert.throws(
+    () => new WebpackConfigBuilder().addBabelLoader().addTypeScriptLoader(),
+    /A script loader is already configured with addBabelLoader\(\)\./u,
+  );
+  assert.throws(
+    () => new WebpackConfigBuilder().addTypeScriptLoader().addBabelLoader(),
+    /A script loader is already configured with addTypeScriptLoader\(\)\./u,
+  );
+  assert.throws(
+    () => new WebpackConfigBuilder().enableTypeScriptExperiment().addBabelLoader(),
+    /addBabelLoader\(\) cannot be combined with the TypeScript experiment\./u,
+  );
+  assert.throws(
+    () => new WebpackConfigBuilder().addBabelLoader().enableTypeScriptExperiment(),
+    /The TypeScript experiment cannot be combined with addBabelLoader\(\)\./u,
+  );
+  assert.throws(
+    () => new WebpackConfigBuilder().enableTypeScriptExperiment().addTypeScriptLoader(),
+    /addTypeScriptLoader\(\) cannot be combined with the TypeScript experiment\./u,
+  );
+  assert.throws(
+    () => new WebpackConfigBuilder().addTypeScriptLoader().enableTypeScriptExperiment(),
+    /The TypeScript experiment cannot be combined with addTypeScriptLoader\(\)\./u,
+  );
+});
+
+test('rejects incompatible HTML processing configurations', () => {
+  assert.throws(
+    () => new WebpackConfigBuilder().enableHtmlExperiment().addHtmlLoader(),
+    /addHtmlLoader\(\) and the HTML experiment are alternative HTML module implementations\./u,
+  );
+  assert.throws(
+    () => new WebpackConfigBuilder().addHtmlLoader().enableHtmlExperiment(),
+    /The HTML experiment and addHtmlLoader\(\) are alternative HTML module implementations\./u,
+  );
+});
+
+test('keeps style loaders coupled to the CSS experiment', () => {
+  assert.throws(
+    () => new WebpackConfigBuilder().disableCssExperiment().addStyleLoaders(),
+    /addStyleLoaders\(\) requires the CSS experiment\./u,
+  );
+  assert.throws(
+    () => new WebpackConfigBuilder().addStyleLoaders().disableCssExperiment(),
+    /The CSS experiment cannot be disabled after addStyleLoaders\(\)\./u,
+  );
+});
+
 test('precompresses nontrivial assets whenever compression reduces their size', () => {
   const config = new WebpackConfigBuilder()
     .addGzipCompressionPlugin()
