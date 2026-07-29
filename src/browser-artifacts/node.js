@@ -419,7 +419,7 @@ async function compileBrowserEntries({ entries, outputDirectory, projectDirector
     })
     .setPublicPath('./')
     .setOutputPath(outputDirectory)
-    .addBabelLoader()
+    .addTypeScriptLoader()
     .addStyleLoaders()
     .addHtmlLoader()
     .addAssetQueryRules()

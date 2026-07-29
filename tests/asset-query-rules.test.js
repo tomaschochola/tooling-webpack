@@ -24,12 +24,12 @@ import { WebpackConfigBuilder } from '../src/index.js';
 const execute = promisify(execFile);
 const loaderDirectory = fileURLToPath(new URL('../node_modules/', import.meta.url));
 
-async function compileSource(root, outputName, configure) {
+async function compileSource(root, outputName, configure, mode = 'development') {
   const outputPath = join(root, outputName);
 
   const builder = configure(new WebpackConfigBuilder({
     argv: {
-      mode: 'development',
+      mode,
     },
   }))
     .setEntries({
@@ -43,7 +43,7 @@ async function compileSource(root, outputName, configure) {
     ...base,
     context: process.cwd(),
     devtool: false,
-    mode: 'development',
+    mode,
     resolveLoader: {
       modules: [loaderDirectory, 'node_modules'],
     },
@@ -158,4 +158,45 @@ test('keeps HTML asset queries independent of html-loader and builder method ord
     assert.equal(stderr, '');
     assert.equal(stdout, '<h1>Example</h1>\n');
   }
+});
+
+test('optimizes inline SVG without rasterizing it', async (context) => {
+  const root = await mkdtemp(join(tmpdir(), 'tooling-webpack-svg-minimizer-'));
+
+  context.after(async () => {
+    await rm(root, {
+      force: true,
+      recursive: true,
+    });
+  });
+
+  const source = [
+    '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">',
+    '  <!-- This comment and whitespace are intentionally removable. -->',
+    '  <rect width="100" height="100" fill="#ff0000" />',
+    '</svg>',
+    '',
+  ].join('\n');
+
+  await writeFile(
+    join(root, 'index.js'),
+    'import image from \'./image.svg?inline\'; process.stdout.write(image);\n',
+  );
+  await writeFile(join(root, 'image.svg'), source);
+
+  const { stderr, stdout } = await compileSource(
+    root,
+    'svg-minimizer',
+    (builder) => builder.addAssetQueryRules().addImageMinimizer(),
+    'production',
+  );
+
+  assert.equal(stderr, '');
+  assert.match(stdout, /^data:image\/svg\+xml;base64,/u);
+
+  const optimized = Buffer.from(stdout.slice(stdout.indexOf(',') + 1), 'base64').toString();
+
+  assert.match(optimized, /^<svg\b/u);
+  assert.doesNotMatch(optimized, /intentionally removable/u);
+  assert.ok(Buffer.byteLength(optimized) < Buffer.byteLength(source));
 });

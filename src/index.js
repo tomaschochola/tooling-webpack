@@ -647,44 +647,55 @@ export class WebpackConfigBuilder {
         minimizer: [
           ...(this.#config.optimization.minimizer ?? []),
           new ImageMinimizerPlugin({
-            minimizer: {
-              implementation: ImageMinimizerPlugin.sharpMinify,
-              options: {
-                encodeOptions: {
-                  jpeg: {
-                    quality: 100,
-                  },
-                  webp: {
-                    lossless: true,
-                    effort: 6,
-                  },
-                  avif: {
-                    lossless: true,
-                    effort: 9,
-                  },
-                  heif: {
-                    lossless: true,
-                    effort: 9,
-                  },
-                  jxl: {
-                    lossless: true,
-                    effort: 9,
-                  },
-                  jp2: {
-                    lossless: true,
-                  },
-                  tiff: {
-                    quality: 100,
-                  },
-                  png: {
-                    effort: 10,
-                  },
-                  gif: {
-                    effort: 10,
+            minimizer: [
+              {
+                implementation: ImageMinimizerPlugin.sharpMinify,
+                options: {
+                  encodeOptions: {
+                    jpeg: {
+                      quality: 100,
+                    },
+                    webp: {
+                      lossless: true,
+                      effort: 6,
+                    },
+                    avif: {
+                      lossless: true,
+                      effort: 9,
+                    },
+                    heif: {
+                      lossless: true,
+                      effort: 9,
+                    },
+                    jxl: {
+                      lossless: true,
+                      effort: 9,
+                    },
+                    jp2: {
+                      lossless: true,
+                    },
+                    tiff: {
+                      quality: 100,
+                    },
+                    png: {
+                      effort: 10,
+                    },
+                    gif: {
+                      effort: 10,
+                    },
                   },
                 },
               },
-            },
+              {
+                implementation: ImageMinimizerPlugin.svgoMinify,
+                options: {
+                  encodeOptions: {
+                    multipass: true,
+                    plugins: ['preset-default'],
+                  },
+                },
+              },
+            ],
             generator: [
               {
                 preset: 'avif',

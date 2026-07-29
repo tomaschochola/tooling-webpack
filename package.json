@@ -4,14 +4,16 @@
     "name": "Tomáš Chochola",
     "url": "https://github.com/tomaschochola"
   },
+  "bin": {
+    "browser-artifacts": "./src/browser-artifacts/cli.js",
+    "generate-icons": "./src/icons/generate-icons",
+    "render-icon": "./src/icons/render-icon"
+  },
+  "browser": "./src/browser.ts",
   "bugs": {
     "email": "tomaschochola@tomaschochola.cz",
     "url": "https://github.com/tomaschochola/tooling-webpack/issues"
   },
-  "bin": {
-    "browser-artifacts": "./src/browser-artifacts/cli.js"
-  },
-  "browser": "./src/browser.ts",
   "contributors": [
     {
       "email": "tomaschochola@tomaschochola.cz",
@@ -27,28 +29,33 @@
     "css-minimizer-webpack-plugin": "^8.0.0",
     "html-loader": "^5.1.0",
     "html-minimizer-webpack-plugin": "^6.0.0",
-    "html-webpack-plugin": "^5.6.6",
+    "html-webpack-plugin": "^5.6.8",
     "image-minimizer-webpack-plugin": "^5.0.0",
     "json-minimizer-webpack-plugin": "^5.0.1",
     "playwright": "^1.62.0",
     "postcss-loader": "^8.2.1",
-    "sass-embedded": "^1.98.0",
-    "sass-loader": "^16.0.7",
+    "sass-embedded": "^1.100.0",
+    "sass-loader": "^17.0.0",
     "sharp": "^0.35.3",
     "style-loader": "^4.0.0",
-    "svgo": "^4.0.1",
-    "terser-webpack-plugin": "^5.4.0",
-    "ts-loader": "^9.5.4",
-    "webpack": "^5.105.4",
-    "webpack-bundle-analyzer": "^5.3.0",
-    "webpack-cli": "^7.0.2",
+    "svgo": "^4.0.2",
+    "terser-webpack-plugin": "^5.6.1",
+    "ts-loader": "^9.6.2",
+    "typescript": "^6.0.3",
+    "webpack": "^5.109.2",
+    "webpack-bundle-analyzer": "^5.3.1",
+    "webpack-cli": "^7.2.2",
     "webpack-dev-server": "^6.0.0",
-    "workbox-webpack-plugin": "^7.4.0"
+    "workbox-webpack-plugin": "^7.4.1"
   },
   "description": "@tomaschochola/tooling-webpack",
   "devDependencies": {
     "@tomaschochola/tooling-eslint": "github:tomaschochola/tooling-eslint#1.x",
     "@tomaschochola/tooling-prettier": "github:tomaschochola/tooling-prettier#1.x"
+  },
+  "engines": {
+    "node": ">=24.11.0 <25.0.0",
+    "npm": ">=11.0.0 <12.0.0"
   },
   "funding": {
     "type": "github",
@@ -65,6 +72,10 @@
   "license": "CC-BY-ND-4.0",
   "main": "./src/index.js",
   "name": "@tomaschochola/tooling-webpack",
+  "packageManager": "npm@11.16.0",
+  "peerDependencies": {
+    "@babel/core": "^8.0.1"
+  },
   "repository": "github:tomaschochola/tooling-webpack",
   "sideEffects": false,
   "type": "module",

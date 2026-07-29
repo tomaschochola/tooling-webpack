@@ -116,8 +116,8 @@ postcreate: deps_install
 
 .PHONY: devcontainer
 devcontainer: precreate
-	devcontainer up
-	devcontainer exec /bin/bash || true
+	devcontainer up --workspace-folder .
+	devcontainer exec --workspace-folder . /bin/bash || true
 	docker ps -q --filter "label=devcontainer.local_folder=$${PWD}" | xargs -r docker stop
 
 # Dependencies
