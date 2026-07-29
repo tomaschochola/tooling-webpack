@@ -4,12 +4,6 @@
     "name": "Tomáš Chochola",
     "url": "https://github.com/tomaschochola"
   },
-  "bin": {
-    "browser-artifacts": "./src/browser-artifacts.js",
-    "generate-icons": "./src/generate-icons.js",
-    "render-icon": "./src/render-icon.js"
-  },
-  "browser": "./src/browser.ts",
   "bugs": {
     "email": "tomaschochola@tomaschochola.cz",
     "url": "https://github.com/tomaschochola/tooling-webpack/issues"
@@ -22,8 +16,6 @@
     }
   ],
   "dependencies": {
-    "@tomaschochola/tooling-browser-artifacts": "github:tomaschochola/tooling-browser-artifacts#1.x",
-    "@tomaschochola/tooling-favicons": "github:tomaschochola/tooling-favicons#1.x",
     "babel-loader": "^10.1.1",
     "compression-webpack-plugin": "^12.0.0",
     "copy-webpack-plugin": "^14.0.0",
@@ -78,6 +70,5 @@
   },
   "repository": "github:tomaschochola/tooling-webpack",
   "sideEffects": false,
-  "type": "module",
-  "types": "./src/browser.ts"
+  "type": "module"
 }
