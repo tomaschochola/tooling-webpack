@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /**
  * @file
  * @author Tomáš Chochola <tomaschochola@tomaschochola.cz>
@@ -10,4 +12,7 @@
  * @see {@link https://github.com/sponsors/tomaschochola} GitHub Sponsors
  */
 
-import '@fontsource-variable/atkinson-hyperlegible-next';
+import process from 'node:process';
+import { runRenderIconCli } from '@tomaschochola/tooling-favicons/cli';
+
+process.exitCode = await runRenderIconCli();

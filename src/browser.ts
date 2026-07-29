@@ -10,6 +10,4 @@
  * @see {@link https://github.com/sponsors/tomaschochola} GitHub Sponsors
  */
 
-export * from './browser-artifacts/browser';
-export * from './browser-artifacts/components/browser-artifact-print-page';
-export * from './browser-artifacts/components/browser-artifact-social-card';
+export * from '@tomaschochola/tooling-browser-artifacts/browser';

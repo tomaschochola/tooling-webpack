@@ -1,4 +1,6 @@
-<!--
+#!/usr/bin/env node
+
+/**
  * @file
  * @author Tomáš Chochola <tomaschochola@tomaschochola.cz>
  * @copyright © 2026 Tomáš Chochola <tomaschochola@tomaschochola.cz>
@@ -8,19 +10,9 @@
  * @see {@link https://creativecommons.org/licenses/by-nd/4.0/} License
  * @see {@link https://github.com/tomaschochola} GitHub Profile
  * @see {@link https://github.com/sponsors/tomaschochola} GitHub Sponsors
--->
+ */
 
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1"
-    />
-    <title>Browser artifact</title>
-  </head>
-  <body>
-    <div data-browser-artifact-root></div>
-  </body>
-</html>
+import process from 'node:process';
+import { runGenerateIconsCli } from '@tomaschochola/tooling-favicons/cli';
+
+process.exitCode = await runGenerateIconsCli();

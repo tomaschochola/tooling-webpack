@@ -23,7 +23,7 @@ import webpack from 'webpack';
 import WorkboxPlugin from 'workbox-webpack-plugin';
 import { constants } from 'zlib';
 
-export { browserArtifactDefaults, generateBrowserArtifacts } from './browser-artifacts/node.js';
+export { browserArtifactDefaults, generateBrowserArtifacts } from '@tomaschochola/tooling-browser-artifacts/node';
 
 const assetResourceQuery = /^\?(?:asset|inline|resource|source)$/;
 const robotsMetaPattern = /<meta\b(?=[^>]*\sname\s*=\s*(?:"robots"|'robots'|robots(?=[\s/>])))[^>]*>/gi;

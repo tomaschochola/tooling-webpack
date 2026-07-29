@@ -17,10 +17,10 @@ import { promisify } from 'node:util';
 import test from 'node:test';
 
 const execute = promisify(execFile);
-const generateIcons = fileURLToPath(new URL('../src/icons/generate-icons', import.meta.url));
-const renderIcon = fileURLToPath(new URL('../src/icons/render-icon', import.meta.url));
+const generateIcons = fileURLToPath(new URL('../src/generate-icons.js', import.meta.url));
+const renderIcon = fileURLToPath(new URL('../src/render-icon.js', import.meta.url));
 
-test('exposes concise icon generator usage', async () => {
+test('keeps the generate-icons compatibility executable', async () => {
   await assert.rejects(
     async () => await execute(generateIcons),
     {
@@ -30,7 +30,7 @@ test('exposes concise icon generator usage', async () => {
   );
 });
 
-test('exposes concise icon renderer usage', async () => {
+test('keeps the render-icon compatibility executable', async () => {
   await assert.rejects(
     async () => await execute(renderIcon),
     {

@@ -18,7 +18,7 @@ import test from 'node:test';
 import { browserArtifactDefaults, generateBrowserArtifacts } from '../src/index.js';
 
 const execute = promisify(execFile);
-const cli = fileURLToPath(new URL('../src/browser-artifacts/cli.js', import.meta.url));
+const cli = fileURLToPath(new URL('../src/browser-artifacts.js', import.meta.url));
 
 test('exports the browser artifact programmatic API', () => {
   assert.equal(typeof generateBrowserArtifacts, 'function');

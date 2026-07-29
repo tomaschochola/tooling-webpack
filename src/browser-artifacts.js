@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /**
  * @file
  * @author Tomáš Chochola <tomaschochola@tomaschochola.cz>
@@ -10,23 +12,4 @@
  * @see {@link https://github.com/sponsors/tomaschochola} GitHub Sponsors
  */
 
-:root {
-  color-scheme: only light;
-}
-
-:root,
-body {
-  box-sizing: border-box;
-  inline-size: 100%;
-  block-size: 100%;
-}
-
-body {
-  margin: 0;
-}
-
-[data-browser-artifact-root] {
-  box-sizing: border-box;
-  inline-size: 100%;
-  block-size: 100%;
-}
+import '@tomaschochola/tooling-browser-artifacts/cli';
