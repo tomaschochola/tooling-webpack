@@ -135,6 +135,9 @@ export class WebpackConfigBuilder {
         publicPath: '/',
       },
       devtool: this.webpackMode === 'production' ? 'hidden-nosources-source-map' : 'eval-source-map',
+      performance: {
+        hints: false,
+      },
       devServer: {
         host: '0.0.0.0',
         port: 3000,

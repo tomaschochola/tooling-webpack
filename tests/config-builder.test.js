@@ -29,6 +29,12 @@ test('does not opt into unstable future Webpack defaults', () => {
   assert.equal(config.experiments.futureDefaults, false);
 });
 
+test('does not apply generic bundle-size hints', () => {
+  const config = new WebpackConfigBuilder().toConfig();
+
+  assert.equal(config.performance.hints, false);
+});
+
 test('disables all browser-side development server updates', () => {
   const config = new WebpackConfigBuilder()
     .setDevServerPort(1234)
