@@ -91,6 +91,6 @@ test('default HTML is self-contained', async (context) => {
 
   const html = await readFile(join(outputPath, 'index.html'), 'utf8');
 
-  assert.match(html, /<title>Application<\/title>/u);
+  assert.match(html, /<title>tomaschochola\/tooling-webpack<\/title>/u);
   assert.doesNotMatch(html, /fonts\.googleapis\.com|fonts\.gstatic\.com/u);
 });
