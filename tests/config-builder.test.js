@@ -11,27 +11,35 @@
  */
 
 import assert from 'node:assert/strict';
+import { resolve } from 'node:path';
 import { test } from 'node:test';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 
 import { WebpackConfigBuilder } from '../src/index.js';
 
-test('uses the application environment in the default output path', () => {
-  const config = new WebpackConfigBuilder({
-    env: {
-      APP_ENV: 'development',
-    },
-  }).toConfig();
+test('uses dist as the default output path', () => {
+  const config = new WebpackConfigBuilder().toConfig();
 
-  const expectedPath = fileURLToPath(new URL('./dist/development/', pathToFileURL(`${process.cwd()}/`)));
-
-  assert.equal(config.output.path, expectedPath);
+  assert.equal(config.output.path, resolve('dist'));
 });
 
 test('does not opt into unstable future Webpack defaults', () => {
   const config = new WebpackConfigBuilder().toConfig();
 
   assert.equal(config.experiments.futureDefaults, false);
+});
+
+test('disables all browser-side development server updates', () => {
+  const config = new WebpackConfigBuilder()
+    .setDevServerPort(1234)
+    .disableDevServerLiveUpdates()
+    .toConfig();
+
+  assert.equal(config.devServer.client, false);
+  assert.equal(config.devServer.hot, false);
+  assert.equal(config.devServer.liveReload, false);
+  assert.equal(config.devServer.port, 1234);
+  assert.equal(config.devServer.webSocketServer, false);
 });
 
 test('resolves the Node environment from Webpack CLI arguments, the process, then the mode', () => {
@@ -141,6 +149,37 @@ test('resolves the HTML public path from the final output configuration', () => 
   assert.equal(addThenSet.plugins[0].options.publicPath, 'auto');
 });
 
+test('resolves the default HTML template relative to the package', () => {
+  const config = new WebpackConfigBuilder()
+    .addHtmlPlugin()
+    .toConfig();
+
+  const expectedTemplate = fileURLToPath(new URL('../assets/index.html', import.meta.url));
+
+  assert.equal(config.plugins[0].options.template, expectedTemplate);
+});
+
+test('captures Webpack arguments and environment values at construction', () => {
+  const env = {
+    APP_NAME: 'Original application',
+  };
+
+  const argv = {
+    mode: 'development',
+  };
+
+  const builder = new WebpackConfigBuilder({
+    env,
+    argv,
+  });
+
+  env.APP_NAME = 'Changed application';
+  argv.mode = 'production';
+
+  assert.equal(builder.appName, 'Original application');
+  assert.equal(builder.webpackMode, 'development');
+});
+
 test('updates configured Terser minimizers when the ECMAScript version changes', () => {
   const setThenAdd = new WebpackConfigBuilder()
     .setEcmaVersion(2022)
@@ -156,7 +195,7 @@ test('updates configured Terser minimizers when the ECMAScript version changes',
   assert.equal(addThenSet.optimization.minimizer[0].options.minimizer.options.ecma, 2022);
 });
 
-test('precompresses nontrivial assets whenever compression reduces their size', () => {
+test('precompresses every asset only when compression reduces its size', () => {
   const config = new WebpackConfigBuilder()
     .addGzipCompressionPlugin()
     .addBrotliCompressionPlugin()
@@ -164,9 +203,9 @@ test('precompresses nontrivial assets whenever compression reduces their size', 
 
   const [gzip, brotli] = config.plugins;
 
-  assert.equal(gzip.options.threshold, 1024);
+  assert.equal(gzip.options.threshold, 0);
   assert.equal(gzip.options.minRatio, 1 - Number.EPSILON);
-  assert.equal(brotli.options.threshold, 1024);
+  assert.equal(brotli.options.threshold, 0);
   assert.equal(brotli.options.minRatio, 1 - Number.EPSILON);
 });
 

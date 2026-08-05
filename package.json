@@ -29,25 +29,28 @@
     "sass-embedded": "^1.100.0",
     "sass-loader": "^17.0.0",
     "sharp": "^0.35.3",
-    "style-loader": "^4.0.0",
     "svgo": "^4.0.2",
     "terser-webpack-plugin": "^5.6.1",
     "ts-loader": "^9.6.2",
     "typescript": "^6.0.3",
     "webpack": "^5.109.2",
-    "webpack-bundle-analyzer": "^5.3.1",
     "webpack-cli": "^7.2.2",
     "webpack-dev-server": "^6.0.0",
     "workbox-webpack-plugin": "^7.4.1"
   },
-  "description": "@tomaschochola/tooling-webpack",
+  "description": "Composable Webpack configuration builder for modern TypeScript web applications.",
   "devDependencies": {
-    "@tomaschochola/tooling-eslint": "github:tomaschochola/tooling-eslint#1.x",
-    "@tomaschochola/tooling-prettier": "github:tomaschochola/tooling-prettier#1.x",
+    "@tomaschochola/tooling-eslint": "github:tomaschochola/tooling-eslint#2.x",
+    "@tomaschochola/tooling-prettier": "github:tomaschochola/tooling-prettier#2.x",
     "@tomaschochola/tooling-trimmer": "github:tomaschochola/tooling-trimmer#2.x"
   },
+  "exports": {
+    ".": "./src/index.js"
+  },
   "files": [
-    "src"
+    "assets",
+    "src",
+    "templates"
   ],
   "funding": {
     "type": "github",
@@ -59,7 +62,12 @@
     "TomasChochola",
     "Tomas Chochola",
     "Tomáš Chochola",
-    "tooling-webpack"
+    "bundler",
+    "configuration",
+    "javascript",
+    "tooling-webpack",
+    "typescript",
+    "webpack"
   ],
   "license": "CC-BY-ND-4.0",
   "main": "./src/index.js",
@@ -67,8 +75,11 @@
   "peerDependencies": {
     "@babel/core": "^8.0.1"
   },
-  "repository": "github:tomaschochola/tooling-webpack",
-  "sideEffects": false,
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tomaschochola/tooling-webpack.git"
+  },
   "type": "module",
   "version": "2.0.0"
 }

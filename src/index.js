@@ -17,13 +17,15 @@ import HtmlMinimizerPlugin from 'html-minimizer-webpack-plugin';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import ImageMinimizerPlugin from 'image-minimizer-webpack-plugin';
 import JsonMinimizerPlugin from 'json-minimizer-webpack-plugin';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import TerserPlugin from 'terser-webpack-plugin';
 import webpack from 'webpack';
 import WorkboxPlugin from 'workbox-webpack-plugin';
 import { constants } from 'zlib';
 
 const assetResourceQuery = /^\?(?:asset|inline|resource|source)$/;
+const defaultHtmlTemplate = fileURLToPath(new URL('../assets/index.html', import.meta.url));
 const robotsMetaPattern = /<meta\b(?=[^>]*\sname\s*=\s*(?:"robots"|'robots'|robots(?=[\s/>])))[^>]*>/gi;
 
 function escapeHtmlAttribute(value) {
@@ -118,8 +120,8 @@ export class WebpackConfigBuilder {
   #terserMinimizerOptions;
 
   constructor({ env = {}, argv = {} } = {}) {
-    this.#env = env;
-    this.#argv = argv;
+    this.#env = { ...env };
+    this.#argv = { ...argv };
     this.#ecmaVersion = 2025;
     this.#terserMinimizerOptions = [];
 
@@ -263,7 +265,7 @@ export class WebpackConfigBuilder {
     return this;
   }
 
-  setOutputPath(path = new URL(`./dist/${this.appEnv}/`, pathToFileURL(`${process.cwd()}/`))) {
+  setOutputPath(path = resolve('dist')) {
     return this.#replaceConfig({
       ...this.#config,
       output: {
@@ -289,6 +291,19 @@ export class WebpackConfigBuilder {
       devServer: {
         ...this.#config.devServer,
         server,
+      },
+    });
+  }
+
+  disableDevServerLiveUpdates() {
+    return this.#replaceConfig({
+      ...this.#config,
+      devServer: {
+        ...this.#config.devServer,
+        client: false,
+        hot: false,
+        liveReload: false,
+        webSocketServer: false,
       },
     });
   }
@@ -445,7 +460,7 @@ export class WebpackConfigBuilder {
       plugins: [
         ...this.#config.plugins,
         new HtmlWebpackPlugin({
-          template: './node_modules/@tomaschochola/tooling-webpack/assets/index.html',
+          template: defaultHtmlTemplate,
           filename: 'index.html',
           xhtml: true,
           inject: true,
@@ -476,7 +491,7 @@ export class WebpackConfigBuilder {
           compressionOptions: { level: 9 },
           filename: '[path][base].gz[query][fragment]',
           minRatio: 1 - Number.EPSILON,
-          threshold: 1024,
+          threshold: 0,
           ...options,
         }),
       ],
@@ -493,7 +508,7 @@ export class WebpackConfigBuilder {
           compressionOptions: { [constants.BROTLI_PARAM_QUALITY]: constants.BROTLI_MAX_QUALITY },
           filename: '[path][base].br[query][fragment]',
           minRatio: 1 - Number.EPSILON,
-          threshold: 1024,
+          threshold: 0,
           ...options,
         }),
       ],
@@ -745,7 +760,6 @@ export class WebpackConfigBuilder {
                       effort: 10,
                       palette: true,
                       colours: 256,
-                      colors: 256,
                       dither: 0.8,
                     },
                   },
@@ -764,11 +778,8 @@ export class WebpackConfigBuilder {
                       trellisQuantisation: true,
                       overshootDeringing: true,
                       optimiseScans: true,
-                      optimizeScans: true,
                       optimiseCoding: true,
-                      optimizeCoding: true,
                       quantisationTable: 2,
-                      quantizationTable: 2,
                       mozjpeg: true,
                     },
                   },
