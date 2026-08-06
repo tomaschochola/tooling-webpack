@@ -38,11 +38,7 @@ test('enables only the CSS experiment by default', () => {
 });
 
 test('sets compilation environment properties explicitly', () => {
-  const config = new WebpackConfigBuilder()
-    .setContext('/workspace')
-    .setDevtool(false)
-    .setTarget(['web', 'es2025'])
-    .toConfig();
+  const config = new WebpackConfigBuilder().setContext('/workspace').setDevtool(false).setTarget(['web', 'es2025']).toConfig();
 
   assert.equal(config.context, '/workspace');
   assert.equal(config.devtool, false);
@@ -67,18 +63,13 @@ test('uses live reload without hot module replacement for interactive developmen
 });
 
 test('enables history API fallback without rewriting asset-like paths by default', () => {
-  const config = new WebpackConfigBuilder()
-    .enableDevServerHistoryApiFallback()
-    .toConfig();
+  const config = new WebpackConfigBuilder().enableDevServerHistoryApiFallback().toConfig();
 
   assert.deepEqual(config.devServer.historyApiFallback, {});
 });
 
 test('disables all browser-side development server updates for noninteractive serving', () => {
-  const config = new WebpackConfigBuilder()
-    .setDevServerPort(1234)
-    .disableDevServerLiveUpdates()
-    .toConfig();
+  const config = new WebpackConfigBuilder().setDevServerPort(1234).disableDevServerLiveUpdates().toConfig();
 
   assert.equal(config.devServer.client, false);
   assert.equal(config.devServer.hot, false);
@@ -93,26 +84,35 @@ test('resolves the Node environment from Webpack CLI arguments, the process, the
   try {
     process.env.NODE_ENV = 'test';
 
-    assert.equal(new WebpackConfigBuilder({
-      argv: {
-        nodeEnv: 'development',
-        mode: 'production',
-      },
-    }).nodeEnv, 'development');
+    assert.equal(
+      new WebpackConfigBuilder({
+        argv: {
+          nodeEnv: 'development',
+          mode: 'production',
+        },
+      }).nodeEnv,
+      'development',
+    );
 
-    assert.equal(new WebpackConfigBuilder({
-      argv: {
-        mode: 'production',
-      },
-    }).nodeEnv, 'test');
+    assert.equal(
+      new WebpackConfigBuilder({
+        argv: {
+          mode: 'production',
+        },
+      }).nodeEnv,
+      'test',
+    );
 
     delete process.env.NODE_ENV;
 
-    assert.equal(new WebpackConfigBuilder({
-      argv: {
-        mode: 'development',
-      },
-    }).nodeEnv, 'development');
+    assert.equal(
+      new WebpackConfigBuilder({
+        argv: {
+          mode: 'development',
+        },
+      }).nodeEnv,
+      'development',
+    );
   } finally {
     if (originalNodeEnv === undefined) {
       delete process.env.NODE_ENV;
@@ -130,21 +130,27 @@ test('resolves the application version from Webpack env, the process, then packa
     process.env.APP_VERSION = '2.0.0';
     process.env.npm_package_version = '1.0.0';
 
-    assert.equal(new WebpackConfigBuilder({
-      env: {
-        APP_VERSION: '3.0.0',
-      },
-    }).appVersion, '3.0.0');
+    assert.equal(
+      new WebpackConfigBuilder({
+        env: {
+          APP_VERSION: '3.0.0',
+        },
+      }).appVersion,
+      '3.0.0',
+    );
 
     assert.equal(new WebpackConfigBuilder().appVersion, '2.0.0');
 
     process.env.APP_VERSION = '';
 
-    assert.equal(new WebpackConfigBuilder({
-      env: {
-        APP_VERSION: '',
-      },
-    }).appVersion, '1.0.0');
+    assert.equal(
+      new WebpackConfigBuilder({
+        env: {
+          APP_VERSION: '',
+        },
+      }).appVersion,
+      '1.0.0',
+    );
 
     delete process.env.npm_package_version;
 
@@ -177,15 +183,9 @@ test('defines only the explicitly requested compile-time constants', () => {
 });
 
 test('resolves the HTML public path from the final output configuration', () => {
-  const setThenAdd = new WebpackConfigBuilder()
-    .setPublicPath('./')
-    .addHtmlPlugin()
-    .toConfig();
+  const setThenAdd = new WebpackConfigBuilder().setPublicPath('./').addHtmlPlugin().toConfig();
 
-  const addThenSet = new WebpackConfigBuilder()
-    .addHtmlPlugin()
-    .setPublicPath('./')
-    .toConfig();
+  const addThenSet = new WebpackConfigBuilder().addHtmlPlugin().setPublicPath('./').toConfig();
 
   assert.equal(setThenAdd.output.publicPath, './');
   assert.equal(setThenAdd.plugins[0].options.publicPath, 'auto');
@@ -194,9 +194,7 @@ test('resolves the HTML public path from the final output configuration', () => 
 });
 
 test('resolves the default HTML template relative to the package', () => {
-  const config = new WebpackConfigBuilder()
-    .addHtmlPlugin()
-    .toConfig();
+  const config = new WebpackConfigBuilder().addHtmlPlugin().toConfig();
 
   const expectedTemplate = fileURLToPath(new URL('../assets/index.html', import.meta.url));
 
@@ -225,25 +223,16 @@ test('captures Webpack arguments and environment values at construction', () => 
 });
 
 test('updates configured Terser minimizers when the ECMAScript version changes', () => {
-  const setThenAdd = new WebpackConfigBuilder()
-    .setEcmaVersion(2022)
-    .addTerserMinimizer()
-    .toConfig();
+  const setThenAdd = new WebpackConfigBuilder().setEcmaVersion(2022).addTerserMinimizer().toConfig();
 
-  const addThenSet = new WebpackConfigBuilder()
-    .addTerserMinimizer()
-    .setEcmaVersion(2022)
-    .toConfig();
+  const addThenSet = new WebpackConfigBuilder().addTerserMinimizer().setEcmaVersion(2022).toConfig();
 
   assert.equal(setThenAdd.optimization.minimizer[0].options.minimizer.options.ecma, 2022);
   assert.equal(addThenSet.optimization.minimizer[0].options.minimizer.options.ecma, 2022);
 });
 
 test('precompresses every asset only when compression reduces its size', () => {
-  const config = new WebpackConfigBuilder()
-    .addGzipCompressionPlugin()
-    .addBrotliCompressionPlugin()
-    .toConfig();
+  const config = new WebpackConfigBuilder().addGzipCompressionPlugin().addBrotliCompressionPlugin().toConfig();
 
   const [gzip, brotli] = config.plugins;
 
@@ -254,9 +243,7 @@ test('precompresses every asset only when compression reduces its size', () => {
 });
 
 test('does not expose a service worker source map by default', () => {
-  const config = new WebpackConfigBuilder()
-    .addWorkboxServiceWorkerPlugin()
-    .toConfig();
+  const config = new WebpackConfigBuilder().addWorkboxServiceWorkerPlugin().toConfig();
 
   assert.equal(config.plugins[0].config.sourcemap, false);
 });

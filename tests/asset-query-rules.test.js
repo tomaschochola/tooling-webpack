@@ -27,11 +27,13 @@ const loaderDirectory = fileURLToPath(new URL('../node_modules/', import.meta.ur
 async function compileSource(root, outputName, configure, mode = 'development') {
   const outputPath = join(root, outputName);
 
-  const builder = configure(new WebpackConfigBuilder({
-    argv: {
-      mode,
-    },
-  }))
+  const builder = configure(
+    new WebpackConfigBuilder({
+      argv: {
+        mode,
+      },
+    }),
+  )
     .setEntries({
       index: join(root, 'index.js'),
     })
@@ -112,14 +114,8 @@ test('compiles SCSS source independently of builder method order', async (contex
     });
   });
 
-  await writeFile(
-    join(root, 'index.js'),
-    'import cssSource from \'./style.scss?source\'; process.stdout.write(cssSource);\n',
-  );
-  await writeFile(
-    join(root, 'style.scss'),
-    '$color: red;\n\n.example {\n  color: $color;\n}\n',
-  );
+  await writeFile(join(root, 'index.js'), "import cssSource from './style.scss?source'; process.stdout.write(cssSource);\n");
+  await writeFile(join(root, 'style.scss'), '$color: red;\n\n.example {\n  color: $color;\n}\n');
 
   for (const [outputName, configure] of [
     ['style-assets', (builder) => builder.addStyleLoaders().addAssetQueryRules()],
@@ -143,10 +139,7 @@ test('keeps HTML asset queries independent of html-loader and builder method ord
     });
   });
 
-  await writeFile(
-    join(root, 'index.js'),
-    'import htmlSource from \'./page.html?source\'; process.stdout.write(htmlSource);\n',
-  );
+  await writeFile(join(root, 'index.js'), "import htmlSource from './page.html?source'; process.stdout.write(htmlSource);\n");
   await writeFile(join(root, 'page.html'), '<h1>Example</h1>\n');
 
   for (const [outputName, configure] of [
@@ -178,18 +171,10 @@ test('optimizes inline SVG without rasterizing it', async (context) => {
     '',
   ].join('\n');
 
-  await writeFile(
-    join(root, 'index.js'),
-    'import image from \'./image.svg?inline\'; process.stdout.write(image);\n',
-  );
+  await writeFile(join(root, 'index.js'), "import image from './image.svg?inline'; process.stdout.write(image);\n");
   await writeFile(join(root, 'image.svg'), source);
 
-  const { stderr, stdout } = await compileSource(
-    root,
-    'svg-minimizer',
-    (builder) => builder.addAssetQueryRules().addImageMinimizer(),
-    'production',
-  );
+  const { stderr, stdout } = await compileSource(root, 'svg-minimizer', (builder) => builder.addAssetQueryRules().addImageMinimizer(), 'production');
 
   assert.equal(stderr, '');
   assert.match(stdout, /^data:image\/svg\+xml;base64,/u);

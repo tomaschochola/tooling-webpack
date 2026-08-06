@@ -24,10 +24,14 @@ import { RobotsPlugin } from '../src/index.js';
 const temporaryDirectories = [];
 
 afterEach(async () => {
-  await Promise.all(temporaryDirectories.splice(0).map((directory) => rm(directory, {
-    force: true,
-    recursive: true,
-  })));
+  await Promise.all(
+    temporaryDirectories.splice(0).map((directory) =>
+      rm(directory, {
+        force: true,
+        recursive: true,
+      }),
+    ),
+  );
 });
 
 async function compile({ html, ...robotsOptions }) {
@@ -57,8 +61,7 @@ async function compile({ html, ...robotsOptions }) {
 
   await new Promise((resolve, reject) => {
     compiler.run((error, stats) => {
-      compiler.close(() => {
-      });
+      compiler.close(() => {});
 
       if (error !== null && error !== undefined) {
         reject(error);
@@ -67,10 +70,14 @@ async function compile({ html, ...robotsOptions }) {
       }
 
       if (stats?.hasErrors()) {
-        reject(new Error(stats.toString({
-          all: false,
-          errors: true,
-        })));
+        reject(
+          new Error(
+            stats.toString({
+              all: false,
+              errors: true,
+            }),
+          ),
+        );
 
         return;
       }

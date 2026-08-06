@@ -15,34 +15,35 @@ import test from 'node:test';
 import createConfig from '../templates/browser_typescript_babel_react.js';
 
 test('copy template keeps development and production behavior explicit', () => {
-  const development = createConfig({
-    APP_ENV: 'development',
-    APP_NAME: 'Example application',
-    APP_VERSION: '2.0.0',
-  }, { mode: 'development' });
+  const development = createConfig(
+    {
+      APP_ENV: 'development',
+      APP_NAME: 'Example application',
+      APP_VERSION: '2.0.0',
+    },
+    { mode: 'development' },
+  );
 
-  const production = createConfig({
-    APP_ENV: 'production',
-    APP_NAME: 'Example application',
-    APP_VERSION: '2.0.0',
-  }, { mode: 'production' });
+  const production = createConfig(
+    {
+      APP_ENV: 'production',
+      APP_NAME: 'Example application',
+      APP_VERSION: '2.0.0',
+    },
+    { mode: 'production' },
+  );
 
   assert.deepEqual(development.entry, {
     index: ['./src/index.ts'],
   });
-  assert.deepEqual(development.plugins.map(({ constructor }) => constructor.name), [
-    'DefinePlugin',
-    'HtmlWebpackPlugin',
-    'CopyPlugin',
-  ]);
-  assert.deepEqual(production.plugins.map(({ constructor }) => constructor.name), [
-    'DefinePlugin',
-    'HtmlWebpackPlugin',
-    'CopyPlugin',
-    'CompressionPlugin',
-    'CompressionPlugin',
-    'GenerateSW',
-  ]);
+  assert.deepEqual(
+    development.plugins.map(({ constructor }) => constructor.name),
+    ['DefinePlugin', 'HtmlWebpackPlugin', 'CopyPlugin'],
+  );
+  assert.deepEqual(
+    production.plugins.map(({ constructor }) => constructor.name),
+    ['DefinePlugin', 'HtmlWebpackPlugin', 'CopyPlugin', 'CompressionPlugin', 'CompressionPlugin', 'GenerateSW'],
+  );
   assert.equal(development.devtool, 'eval-source-map');
   assert.equal(production.devtool, 'hidden-source-map');
 });

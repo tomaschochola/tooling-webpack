@@ -35,11 +35,7 @@ const robotsMetaPattern = /<meta\b(?=[^>]*\sname\s*=\s*(?:"robots"|'robots'|robo
 const sassLoader = require.resolve('sass-loader');
 
 function escapeHtmlAttribute(value) {
-  return String(value)
-    .replaceAll('&', '&amp;')
-    .replaceAll('"', '&quot;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;');
+  return String(value).replaceAll('&', '&amp;').replaceAll('"', '&quot;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
 }
 
 function applyRobotsMeta(html, content, filename) {
@@ -61,11 +57,11 @@ function applyRobotsMeta(html, content, filename) {
     return updatedHtml;
   }
 
-  if (!(/<\/head\s*>/i).test(updatedHtml)) {
+  if (!/<\/head\s*>/i.test(updatedHtml)) {
     throw new Error(`Unable to inject robots metadata into "${filename}": missing </head>.`);
   }
 
-  return updatedHtml.replace((/<\/head\s*>/i), `${meta}</head>`);
+  return updatedHtml.replace(/<\/head\s*>/i, `${meta}</head>`);
 }
 
 export class RobotsPlugin {
@@ -93,7 +89,7 @@ export class RobotsPlugin {
         },
         () => {
           for (const asset of compilation.getAssets()) {
-            if (!(/\.html?$/i).test(asset.name)) {
+            if (!/\.html?$/i.test(asset.name)) {
               continue;
             }
 
@@ -356,13 +352,7 @@ export class WebpackConfigBuilder {
     });
   }
 
-  addBabelLoader({
-    exclude = [
-      /node_modules[\\/]core-js/,
-      /node_modules[\\/]webpack[\\/]buildin/,
-    ],
-    ...options
-  } = {}) {
+  addBabelLoader({ exclude = [/node_modules[\\/]core-js/, /node_modules[\\/]webpack[\\/]buildin/], ...options } = {}) {
     return this.#replaceConfig({
       ...this.#config,
       module: {
@@ -494,10 +484,7 @@ export class WebpackConfigBuilder {
   addRobotsPlugin(options = {}) {
     return this.#replaceConfig({
       ...this.#config,
-      plugins: [
-        ...this.#config.plugins,
-        new RobotsPlugin(options),
-      ],
+      plugins: [...this.#config.plugins, new RobotsPlugin(options)],
     });
   }
 
@@ -550,10 +537,7 @@ export class WebpackConfigBuilder {
   addDefinePlugin(options = {}) {
     return this.#replaceConfig({
       ...this.#config,
-      plugins: [
-        ...this.#config.plugins,
-        new webpack.DefinePlugin(options),
-      ],
+      plugins: [...this.#config.plugins, new webpack.DefinePlugin(options)],
     });
   }
 
@@ -575,11 +559,7 @@ export class WebpackConfigBuilder {
   }
 
   addTerserMinimizer(configuration = {}) {
-    const {
-      minimizerOptions,
-      terserOptions,
-      ...options
-    } = configuration;
+    const { minimizerOptions, terserOptions, ...options } = configuration;
 
     const configuredOptions = minimizerOptions ?? terserOptions ?? {};
 
@@ -596,18 +576,20 @@ export class WebpackConfigBuilder {
     const resolvedMinimizerOptions = {
       ...configuredOptions,
       ...(this.#ecmaVersion === undefined ? {} : { ecma: this.#ecmaVersion }),
-      compress: configuredOptions.compress === false
-        ? false
-        : {
-            ...defaultCompressOptions,
-            ...configuredOptions.compress,
-          },
-      format: configuredOptions.format === null
-        ? null
-        : {
-            ...defaultFormatOptions,
-            ...configuredOptions.format,
-          },
+      compress:
+        configuredOptions.compress === false
+          ? false
+          : {
+              ...defaultCompressOptions,
+              ...configuredOptions.compress,
+            },
+      format:
+        configuredOptions.format === null
+          ? null
+          : {
+              ...defaultFormatOptions,
+              ...configuredOptions.format,
+            },
     };
 
     const minimizer = new TerserPlugin({
@@ -622,10 +604,7 @@ export class WebpackConfigBuilder {
       ...this.#config,
       optimization: {
         ...this.#config.optimization,
-        minimizer: [
-          ...(this.#config.optimization.minimizer ?? []),
-          minimizer,
-        ],
+        minimizer: [...(this.#config.optimization.minimizer ?? []), minimizer],
       },
     });
   }
@@ -635,10 +614,7 @@ export class WebpackConfigBuilder {
       ...this.#config,
       optimization: {
         ...this.#config.optimization,
-        minimizer: [
-          ...(this.#config.optimization.minimizer ?? []),
-          new CssMinimizerPlugin(options),
-        ],
+        minimizer: [...(this.#config.optimization.minimizer ?? []), new CssMinimizerPlugin(options)],
       },
     });
   }
@@ -648,10 +624,7 @@ export class WebpackConfigBuilder {
       ...this.#config,
       optimization: {
         ...this.#config.optimization,
-        minimizer: [
-          ...(this.#config.optimization.minimizer ?? []),
-          new HtmlMinimizerPlugin(options),
-        ],
+        minimizer: [...(this.#config.optimization.minimizer ?? []), new HtmlMinimizerPlugin(options)],
       },
     });
   }
@@ -661,10 +634,7 @@ export class WebpackConfigBuilder {
       ...this.#config,
       optimization: {
         ...this.#config.optimization,
-        minimizer: [
-          ...(this.#config.optimization.minimizer ?? []),
-          new JsonMinimizerPlugin(options),
-        ],
+        minimizer: [...(this.#config.optimization.minimizer ?? []), new JsonMinimizerPlugin(options)],
       },
     });
   }
@@ -823,13 +793,7 @@ export class WebpackConfigBuilder {
           sourcemap: false,
           swDest: 'sw.js',
           navigateFallback: '/index.html',
-          navigateFallbackDenylist: [
-            /^\/api\//,
-            /^\/admin\//,
-            /^\/otlp\//,
-            /^\/ws\//,
-            /\./,
-          ],
+          navigateFallbackDenylist: [/^\/api\//, /^\/admin\//, /^\/otlp\//, /^\/ws\//, /\./],
           ...options,
         }),
       ],
@@ -839,10 +803,7 @@ export class WebpackConfigBuilder {
   addIgnoredWarnings(warnings) {
     return this.#replaceConfig({
       ...this.#config,
-      ignoreWarnings: [
-        ...(this.#config.ignoreWarnings ?? []),
-        ...warnings,
-      ],
+      ignoreWarnings: [...(this.#config.ignoreWarnings ?? []), ...warnings],
     });
   }
 
