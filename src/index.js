@@ -128,6 +128,7 @@ export class WebpackConfigBuilder {
     this.#terserMinimizerOptions = [];
 
     this.#config = {
+      mode: this.webpackMode,
       target: 'browserslist',
       output: {
         filename: 'immutable.[contenthash].js',
