@@ -17,6 +17,7 @@ import HtmlMinimizerPlugin from 'html-minimizer-webpack-plugin';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import ImageMinimizerPlugin from 'image-minimizer-webpack-plugin';
 import JsonMinimizerPlugin from 'json-minimizer-webpack-plugin';
+import { createRequire } from 'node:module';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import TerserPlugin from 'terser-webpack-plugin';
@@ -26,7 +27,12 @@ import { constants } from 'zlib';
 
 const assetResourceQuery = /^\?(?:asset|inline|resource|source)$/;
 const defaultHtmlTemplate = fileURLToPath(new URL('../assets/index.html', import.meta.url));
+const require = createRequire(import.meta.url);
+const babelLoader = require.resolve('babel-loader');
+const htmlLoader = require.resolve('html-loader');
+const postcssLoader = require.resolve('postcss-loader');
 const robotsMetaPattern = /<meta\b(?=[^>]*\sname\s*=\s*(?:"robots"|'robots'|robots(?=[\s/>])))[^>]*>/gi;
+const sassLoader = require.resolve('sass-loader');
 
 function escapeHtmlAttribute(value) {
   return String(value)
@@ -134,27 +140,23 @@ export class WebpackConfigBuilder {
         clean: true,
         publicPath: '/',
       },
-      devtool: this.webpackMode === 'production' ? 'hidden-nosources-source-map' : 'eval-source-map',
+      devtool: this.webpackMode === 'production' ? 'hidden-source-map' : 'eval-source-map',
       performance: {
         hints: false,
       },
       devServer: {
+        client: {},
         host: '0.0.0.0',
         port: 3000,
-        historyApiFallback: {
-          disableDotRule: true,
-        },
         headers: {
           'Cache-Control': 'max-age=0, no-store',
         },
         hot: false,
         liveReload: true,
+        webSocketServer: 'ws',
       },
       experiments: {
-        futureDefaults: false,
         css: true,
-        typescript: false,
-        html: false,
       },
       resolve: {
         extensions: ['.tsx', '.mts', '.ts', '.cts', '.jsx', '.mjs', '.js', '.cjs'],
@@ -214,38 +216,36 @@ export class WebpackConfigBuilder {
     return this;
   }
 
-  #setExperiment(experiment, enabled) {
+  #setCssExperiment(enabled) {
     return this.#replaceConfig({
       ...this.#config,
       experiments: {
         ...this.#config.experiments,
-        [experiment]: enabled,
+        css: enabled,
       },
     });
   }
 
   enableCssExperiment() {
-    return this.#setExperiment('css', true);
+    return this.#setCssExperiment(true);
   }
 
   disableCssExperiment() {
-    return this.#setExperiment('css', false);
+    return this.#setCssExperiment(false);
   }
 
-  enableHtmlExperiment() {
-    return this.#setExperiment('html', true);
+  setContext(context) {
+    return this.#replaceConfig({
+      ...this.#config,
+      context,
+    });
   }
 
-  disableHtmlExperiment() {
-    return this.#setExperiment('html', false);
-  }
-
-  enableTypeScriptExperiment() {
-    return this.#setExperiment('typescript', true);
-  }
-
-  disableTypeScriptExperiment() {
-    return this.#setExperiment('typescript', false);
+  setDevtool(devtool) {
+    return this.#replaceConfig({
+      ...this.#config,
+      devtool,
+    });
   }
 
   setPublicPath(publicPath) {
@@ -255,6 +255,13 @@ export class WebpackConfigBuilder {
         ...this.#config.output,
         publicPath,
       },
+    });
+  }
+
+  setTarget(target) {
+    return this.#replaceConfig({
+      ...this.#config,
+      target: Array.isArray(target) ? [...target] : target,
     });
   }
 
@@ -294,6 +301,16 @@ export class WebpackConfigBuilder {
       devServer: {
         ...this.#config.devServer,
         server,
+      },
+    });
+  }
+
+  enableDevServerHistoryApiFallback(options = {}) {
+    return this.#replaceConfig({
+      ...this.#config,
+      devServer: {
+        ...this.#config.devServer,
+        historyApiFallback: { ...options },
       },
     });
   }
@@ -358,7 +375,7 @@ export class WebpackConfigBuilder {
             resourceQuery: { not: [/raw/] },
             use: [
               {
-                loader: 'babel-loader',
+                loader: babelLoader,
                 options,
               },
             ],
@@ -371,10 +388,10 @@ export class WebpackConfigBuilder {
   addStyleLoaders() {
     const loaders = [
       {
-        loader: 'postcss-loader',
+        loader: postcssLoader,
       },
       {
-        loader: 'sass-loader',
+        loader: sassLoader,
       },
     ];
 
@@ -415,7 +432,7 @@ export class WebpackConfigBuilder {
             resourceQuery: { not: [/raw/, assetResourceQuery] },
             use: [
               {
-                loader: 'html-loader',
+                loader: htmlLoader,
                 options,
               },
             ],
@@ -535,10 +552,7 @@ export class WebpackConfigBuilder {
       ...this.#config,
       plugins: [
         ...this.#config.plugins,
-        new webpack.DefinePlugin({
-          global: 'globalThis',
-          ...options,
-        }),
+        new webpack.DefinePlugin(options),
       ],
     });
   }
@@ -581,7 +595,7 @@ export class WebpackConfigBuilder {
 
     const resolvedMinimizerOptions = {
       ...configuredOptions,
-      ecma: this.#ecmaVersion,
+      ...(this.#ecmaVersion === undefined ? {} : { ecma: this.#ecmaVersion }),
       compress: configuredOptions.compress === false
         ? false
         : {
@@ -796,55 +810,6 @@ export class WebpackConfigBuilder {
     });
   }
 
-  addTypeScriptLoader({
-    exclude = [
-      /node_modules[\\/]core-js/,
-      /node_modules[\\/]webpack[\\/]buildin/,
-    ],
-    compilerOptions = {},
-    ...options
-  } = {}) {
-    return this.#replaceConfig({
-      ...this.#config,
-      module: {
-        ...this.#config.module,
-        rules: [
-          ...this.#config.module.rules,
-          {
-            test: /\.(tsx|mts|ts|cts|jsx|mjs|js|cjs)$/i,
-            exclude,
-            resourceQuery: { not: [/raw/] },
-            use: [
-              {
-                loader: 'ts-loader',
-                options: {
-                  onlyCompileBundledFiles: true,
-                  allowTsInNodeModules: true,
-                  transpileOnly: true,
-                  ...options,
-                  compilerOptions: {
-                    allowArbitraryExtensions: true,
-                    allowJs: true,
-                    checkJs: false,
-                    declaration: false,
-                    declarationMap: false,
-                    maxNodeModuleJsDepth: 0,
-                    module: 'preserve',
-                    moduleResolution: 'bundler',
-                    noEmit: false,
-                    resolveJsonModule: true,
-                    sourceMap: true,
-                    ...compilerOptions,
-                  },
-                },
-              },
-            ],
-          },
-        ],
-      },
-    });
-  }
-
   addWorkboxServiceWorkerPlugin(options = {}) {
     return this.#replaceConfig({
       ...this.#config,
@@ -887,6 +852,7 @@ export class WebpackConfigBuilder {
       output: { ...this.#config.output },
       devServer: {
         ...this.#config.devServer,
+        client: this.#config.devServer.client === false ? false : { ...this.#config.devServer.client },
         headers: { ...this.#config.devServer.headers },
       },
       experiments: { ...this.#config.experiments },
@@ -907,6 +873,14 @@ export class WebpackConfigBuilder {
 
     if (this.#config.ignoreWarnings !== undefined) {
       config.ignoreWarnings = [...this.#config.ignoreWarnings];
+    }
+
+    if (Array.isArray(this.#config.target)) {
+      config.target = [...this.#config.target];
+    }
+
+    if (typeof this.#config.devServer.historyApiFallback === 'object') {
+      config.devServer.historyApiFallback = { ...this.#config.devServer.historyApiFallback };
     }
 
     return config;

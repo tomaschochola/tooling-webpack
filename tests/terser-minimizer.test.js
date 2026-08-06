@@ -27,7 +27,7 @@ function createTerserPlugin(options, ecmaVersion) {
   return config.optimization.minimizer[0];
 }
 
-test('targets stable ECMAScript 2025 by default', () => {
+test('targets ECMAScript 2025 in Terser by default', () => {
   const plugin = createTerserPlugin();
 
   assert.deepEqual(plugin.options.minimizer.options, {

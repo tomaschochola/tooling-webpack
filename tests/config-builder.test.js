@@ -23,10 +23,30 @@ test('uses dist as the default output path', () => {
   assert.equal(config.output.path, resolve('dist'));
 });
 
-test('does not opt into unstable future Webpack defaults', () => {
+test('derives the Webpack runtime target from Browserslist by default', () => {
   const config = new WebpackConfigBuilder().toConfig();
 
-  assert.equal(config.experiments.futureDefaults, false);
+  assert.equal(config.target, 'browserslist');
+});
+
+test('enables only the CSS experiment by default', () => {
+  const config = new WebpackConfigBuilder().toConfig();
+
+  assert.deepEqual(config.experiments, {
+    css: true,
+  });
+});
+
+test('sets compilation environment properties explicitly', () => {
+  const config = new WebpackConfigBuilder()
+    .setContext('/workspace')
+    .setDevtool(false)
+    .setTarget(['web', 'es2025'])
+    .toConfig();
+
+  assert.equal(config.context, '/workspace');
+  assert.equal(config.devtool, false);
+  assert.deepEqual(config.target, ['web', 'es2025']);
 });
 
 test('does not apply generic bundle-size hints', () => {
@@ -35,7 +55,26 @@ test('does not apply generic bundle-size hints', () => {
   assert.equal(config.performance.hints, false);
 });
 
-test('disables all browser-side development server updates', () => {
+test('uses live reload without hot module replacement for interactive development', () => {
+  const config = new WebpackConfigBuilder().toConfig();
+
+  assert.deepEqual(config.devServer.client, {});
+  assert.equal(config.devServer.historyApiFallback, undefined);
+  assert.equal(config.devServer.host, '0.0.0.0');
+  assert.equal(config.devServer.hot, false);
+  assert.equal(config.devServer.liveReload, true);
+  assert.equal(config.devServer.webSocketServer, 'ws');
+});
+
+test('enables history API fallback without rewriting asset-like paths by default', () => {
+  const config = new WebpackConfigBuilder()
+    .enableDevServerHistoryApiFallback()
+    .toConfig();
+
+  assert.deepEqual(config.devServer.historyApiFallback, {});
+});
+
+test('disables all browser-side development server updates for noninteractive serving', () => {
   const config = new WebpackConfigBuilder()
     .setDevServerPort(1234)
     .disableDevServerLiveUpdates()
@@ -125,7 +164,7 @@ test('resolves the application version from Webpack env, the process, then packa
   }
 });
 
-test('keeps the global compatibility definition with custom definitions', () => {
+test('defines only the explicitly requested compile-time constants', () => {
   const config = new WebpackConfigBuilder()
     .addDefinePlugin({
       TEST_VALUE: JSON.stringify('test'),
@@ -133,7 +172,6 @@ test('keeps the global compatibility definition with custom definitions', () => 
     .toConfig();
 
   assert.deepEqual(config.plugins[0].definitions, {
-    global: 'globalThis',
     TEST_VALUE: '"test"',
   });
 });

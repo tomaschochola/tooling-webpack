@@ -44,5 +44,5 @@ test('copy template keeps development and production behavior explicit', () => {
     'GenerateSW',
   ]);
   assert.equal(development.devtool, 'eval-source-map');
-  assert.equal(production.devtool, 'hidden-nosources-source-map');
+  assert.equal(production.devtool, 'hidden-source-map');
 });
