@@ -560,9 +560,7 @@ export class WebpackConfigBuilder {
   }
 
   addTerserMinimizer(configuration = {}) {
-    const { minimizerOptions, terserOptions, ...options } = configuration;
-
-    const configuredOptions = minimizerOptions ?? terserOptions ?? {};
+    const { minimizerOptions = {}, ...options } = configuration;
 
     const defaultCompressOptions = {
       drop_console: true,
@@ -575,21 +573,21 @@ export class WebpackConfigBuilder {
     };
 
     const resolvedMinimizerOptions = {
-      ...configuredOptions,
+      ...minimizerOptions,
       ...(this.#ecmaVersion === undefined ? {} : { ecma: this.#ecmaVersion }),
       compress:
-        configuredOptions.compress === false
+        minimizerOptions.compress === false
           ? false
           : {
               ...defaultCompressOptions,
-              ...configuredOptions.compress,
+              ...minimizerOptions.compress,
             },
       format:
-        configuredOptions.format === null
+        minimizerOptions.format === null
           ? null
           : {
               ...defaultFormatOptions,
-              ...configuredOptions.format,
+              ...minimizerOptions.format,
             },
     };
 

@@ -75,21 +75,3 @@ test('merges custom minimizer options with the production defaults', () => {
     },
   });
 });
-
-test('normalizes the deprecated terserOptions alias', () => {
-  const plugin = createTerserPlugin(
-    {
-      terserOptions: {
-        compress: false,
-        format: null,
-      },
-    },
-    2020,
-  );
-
-  assert.deepEqual(plugin.options.minimizer.options, {
-    ecma: 2020,
-    compress: false,
-    format: null,
-  });
-});
