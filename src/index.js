@@ -33,6 +33,8 @@ const htmlLoader = require.resolve('html-loader');
 const postcssLoader = require.resolve('postcss-loader');
 const robotsMetaPattern = /<meta\b(?=[^>]*\sname\s*=\s*(?:"robots"|'robots'|robots(?=[\s/>])))[^>]*>/gi;
 const sassLoader = require.resolve('sass-loader');
+const staticTemplateResourceQuery = /^\?template$/;
+const stylesheetResourceQuery = /^\?sheet$/;
 
 function escapeHtmlAttribute(value) {
   return String(value).replaceAll('&', '&amp;').replaceAll('"', '&quot;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
@@ -396,6 +398,14 @@ export class WebpackConfigBuilder {
             test: /\.(sass|scss|css)$/i,
             oneOf: [
               {
+                parser: {
+                  exportType: 'css-style-sheet',
+                },
+                resourceQuery: stylesheetResourceQuery,
+                type: 'css/auto',
+                use: loaders,
+              },
+              {
                 resourceQuery: assetResourceQuery,
                 use: loaders,
               },
@@ -419,8 +429,13 @@ export class WebpackConfigBuilder {
         rules: [
           ...this.#config.module.rules,
           {
+            resourceQuery: staticTemplateResourceQuery,
+            test: /\.template\.html$/i,
+            type: 'asset/source',
+          },
+          {
             test: /\.(html|php)$/i,
-            resourceQuery: { not: [/raw/, assetResourceQuery] },
+            resourceQuery: { not: [/raw/, assetResourceQuery, staticTemplateResourceQuery] },
             use: [
               {
                 loader: htmlLoader,

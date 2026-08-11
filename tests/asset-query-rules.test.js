@@ -129,6 +129,32 @@ test('compiles SCSS source independently of builder method order', async (contex
   }
 });
 
+test('exports compiled SCSS as a constructable stylesheet', async (context) => {
+  const root = await mkdtemp(join(tmpdir(), 'tooling-webpack-stylesheet-module-'));
+
+  context.after(async () => {
+    await rm(root, {
+      force: true,
+      recursive: true,
+    });
+  });
+
+  await writeFile(join(root, 'index.js'), ["import sheet from './style.scss?sheet';", 'process.stdout.write(`${typeof sheet.replaceSync}\n${sheet.cssText}`);', ''].join('\n'));
+  await writeFile(join(root, 'style.scss'), '$color: red;\n\n.example {\n  color: $color;\n}\n');
+
+  for (const [outputName, configure] of [
+    ['style-assets', (builder) => builder.addStyleLoaders().addAssetQueryRules()],
+    ['assets-style', (builder) => builder.addAssetQueryRules().addStyleLoaders()],
+  ]) {
+    const { stderr, stdout } = await compileSource(root, outputName, configure);
+
+    assert.equal(stderr, '');
+    assert.match(stdout, /^function\n/u);
+    assert.match(stdout, /\.example\s*\{\s*color:\s*red;/u);
+    assert.doesNotMatch(stdout, /\$color/u);
+  }
+});
+
 test('keeps HTML asset queries independent of html-loader and builder method order', async (context) => {
   const root = await mkdtemp(join(tmpdir(), 'tooling-webpack-html-asset-queries-'));
 
@@ -150,6 +176,32 @@ test('keeps HTML asset queries independent of html-loader and builder method ord
 
     assert.equal(stderr, '');
     assert.equal(stdout, '<h1>Example</h1>\n');
+  }
+});
+
+test('exports reviewed static template source unchanged', async (context) => {
+  const root = await mkdtemp(join(tmpdir(), 'tooling-webpack-static-template-'));
+
+  context.after(async () => {
+    await rm(root, {
+      force: true,
+      recursive: true,
+    });
+  });
+
+  const source = '<section data-ref="example">\n  <h1>Example</h1>\n</section>\n';
+
+  await writeFile(join(root, 'index.js'), "import templateSource from './page.template.html?template'; process.stdout.write(templateSource);\n");
+  await writeFile(join(root, 'page.template.html'), source);
+
+  for (const [outputName, configure] of [
+    ['html-assets', (builder) => builder.addHtmlLoader().addAssetQueryRules()],
+    ['assets-html', (builder) => builder.addAssetQueryRules().addHtmlLoader()],
+  ]) {
+    const { stderr, stdout } = await compileSource(root, outputName, configure);
+
+    assert.equal(stderr, '');
+    assert.equal(stdout, source);
   }
 });
 
