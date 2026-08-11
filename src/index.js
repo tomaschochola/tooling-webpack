@@ -137,7 +137,7 @@ export class WebpackConfigBuilder {
         clean: true,
         publicPath: '/',
       },
-      devtool: this.webpackMode === 'production' ? 'hidden-source-map' : 'eval-source-map',
+      devtool: this.webpackMode === 'production' ? 'hidden-source-map' : 'source-map',
       performance: {
         hints: false,
       },

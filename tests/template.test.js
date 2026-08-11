@@ -44,6 +44,6 @@ test('copy template keeps development and production behavior explicit', () => {
     production.plugins.map(({ constructor }) => constructor.name),
     ['DefinePlugin', 'HtmlWebpackPlugin', 'CopyPlugin', 'CompressionPlugin', 'CompressionPlugin', 'GenerateSW'],
   );
-  assert.equal(development.devtool, 'eval-source-map');
+  assert.equal(development.devtool, 'source-map');
   assert.equal(production.devtool, 'hidden-source-map');
 });
