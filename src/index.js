@@ -815,8 +815,6 @@ export class WebpackConfigBuilder {
       plugins: [
         ...this.#config.plugins,
         new WorkboxPlugin.GenerateSW({
-          clientsClaim: true,
-          skipWaiting: true,
           cleanupOutdatedCaches: true,
           maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
           sourcemap: false,

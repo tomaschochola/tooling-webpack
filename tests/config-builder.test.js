@@ -248,6 +248,25 @@ test('does not expose a service worker source map by default', () => {
   assert.equal(config.plugins[0].config.sourcemap, false);
 });
 
+test('does not activate or claim existing service worker clients by default', () => {
+  const config = new WebpackConfigBuilder().addWorkboxServiceWorkerPlugin().toConfig();
+
+  assert.equal(config.plugins[0].config.clientsClaim, undefined);
+  assert.equal(config.plugins[0].config.skipWaiting, undefined);
+});
+
+test('allows immediate service worker activation to be enabled explicitly', () => {
+  const config = new WebpackConfigBuilder()
+    .addWorkboxServiceWorkerPlugin({
+      clientsClaim: true,
+      skipWaiting: true,
+    })
+    .toConfig();
+
+  assert.equal(config.plugins[0].config.clientsClaim, true);
+  assert.equal(config.plugins[0].config.skipWaiting, true);
+});
+
 test('allows a service worker source map to be enabled explicitly', () => {
   const config = new WebpackConfigBuilder()
     .addWorkboxServiceWorkerPlugin({
