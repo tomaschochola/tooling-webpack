@@ -206,6 +206,29 @@ test('exports compiled SCSS as a constructable stylesheet', async (context) => {
   assert.doesNotMatch(stdout, /\$color/u);
 });
 
+test('exports CSS as text and a constructable stylesheet', async (context) => {
+  const root = await mkdtemp(join(tmpdir(), 'tooling-webpack-css-exports-'));
+
+  context.after(async () => {
+    await rm(root, {
+      force: true,
+      recursive: true,
+    });
+  });
+
+  await writeFile(
+    join(root, 'index.js'),
+    ["import sheet from './style.css?sheet';", "import text from './style.css?text';", 'process.stdout.write(`${typeof sheet.replaceSync}\n${sheet.cssText}\n${text}`);', ''].join('\n'),
+  );
+  await writeFile(join(root, 'style.css'), '.example {\n  color: red;\n}\n');
+
+  const { stderr, stdout } = await compileSource(root, 'css-exports', (builder) => builder.addStyleLoaders());
+
+  assert.equal(stderr, '');
+  assert.match(stdout, /^function\n/u);
+  assert.equal(stdout.match(/\.example\s*\{\s*color:\s*red;/gu)?.length, 2);
+});
+
 test('exports stylesheet source through the generic asset query', async (context) => {
   const root = await mkdtemp(join(tmpdir(), 'tooling-webpack-stylesheet-queries-'));
 
