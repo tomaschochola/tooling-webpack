@@ -267,6 +267,27 @@ test('imports HTML through html-loader without a resource query', async (context
   assert.equal(stdout, '<h1>Example</h1>\n');
 });
 
+test('does not process PHP through html-loader', async (context) => {
+  const root = await mkdtemp(join(tmpdir(), 'tooling-webpack-php-loader-'));
+
+  context.after(async () => {
+    await rm(root, {
+      force: true,
+      recursive: true,
+    });
+  });
+
+  await writeFile(join(root, 'index.js'), "import './page.php';\n");
+  await writeFile(join(root, 'page.php'), '<h1>Example</h1>\n');
+
+  const { statistics } = await compileSource(root, 'php', (builder) => builder.addHtmlLoader(), 'development', {
+    allowErrors: true,
+    runBundle: false,
+  });
+
+  assert.equal(statistics.hasErrors(), true);
+});
+
 test('exports template HTML through the source asset query unchanged', async (context) => {
   const root = await mkdtemp(join(tmpdir(), 'tooling-webpack-template-source-'));
 

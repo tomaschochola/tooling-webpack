@@ -449,7 +449,7 @@ export class WebpackConfigBuilder {
         rules: [
           ...this.#config.module.rules,
           {
-            test: /\.(html|php)$/i,
+            test: /\.html$/i,
             resourceQuery: /^$/,
             use: [
               {
