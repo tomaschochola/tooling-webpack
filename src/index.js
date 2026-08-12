@@ -29,6 +29,7 @@ const defaultHtmlTemplate = fileURLToPath(new URL('../assets/index.html', import
 const require = createRequire(import.meta.url);
 const babelLoader = require.resolve('babel-loader');
 const htmlLoader = require.resolve('html-loader');
+const imageGeneratorResourceQuery = /(?:^\?|&)as=(?:avif|webp|jpg|png)$/;
 const postcssLoader = require.resolve('postcss-loader');
 const robotsMetaPattern = /<meta\b(?=[^>]*\sname\s*=\s*(?:"robots"|'robots'|robots(?=[\s/>])))[^>]*>/gi;
 const sassLoader = require.resolve('sass-loader');
@@ -669,143 +670,151 @@ export class WebpackConfigBuilder {
   }
 
   addImageMinimizer(options = {}) {
+    const pluginOptions = {
+      minimizer: [
+        {
+          implementation: ImageMinimizerPlugin.sharpMinify,
+          options: {
+            encodeOptions: {
+              jpeg: {
+                quality: 100,
+              },
+              webp: {
+                lossless: true,
+                effort: 6,
+              },
+              avif: {
+                lossless: true,
+                effort: 9,
+              },
+              heif: {
+                lossless: true,
+                effort: 9,
+              },
+              jxl: {
+                lossless: true,
+                effort: 9,
+              },
+              jp2: {
+                lossless: true,
+              },
+              tiff: {
+                quality: 100,
+              },
+              png: {
+                effort: 10,
+              },
+              gif: {
+                effort: 10,
+              },
+            },
+          },
+        },
+        {
+          implementation: ImageMinimizerPlugin.svgoMinify,
+          options: {
+            encodeOptions: {
+              multipass: true,
+              plugins: ['preset-default'],
+            },
+          },
+        },
+      ],
+      generator: [
+        {
+          preset: 'avif',
+          type: 'import',
+          implementation: ImageMinimizerPlugin.sharpGenerate,
+          options: {
+            encodeOptions: {
+              avif: {
+                quality: 60,
+                lossless: false,
+                effort: 9,
+                chromaSubsampling: '4:2:0',
+                bitdepth: 8,
+              },
+            },
+          },
+        },
+        {
+          preset: 'webp',
+          type: 'import',
+          implementation: ImageMinimizerPlugin.sharpGenerate,
+          options: {
+            encodeOptions: {
+              webp: {
+                quality: 90,
+                alphaQuality: 100,
+                lossless: false,
+                nearLossless: false,
+                smartSubsample: true,
+                effort: 6,
+                minSize: false,
+                mixed: false,
+                preset: 'default',
+              },
+            },
+          },
+        },
+        {
+          preset: 'png',
+          type: 'import',
+          implementation: ImageMinimizerPlugin.sharpGenerate,
+          options: {
+            encodeOptions: {
+              png: {
+                progressive: true,
+                compressionLevel: 9,
+                adaptiveFiltering: true,
+                quality: 100,
+                effort: 10,
+                palette: true,
+                colours: 256,
+                dither: 0.8,
+              },
+            },
+          },
+        },
+        {
+          preset: 'jpg',
+          type: 'import',
+          implementation: ImageMinimizerPlugin.sharpGenerate,
+          options: {
+            encodeOptions: {
+              jpg: {
+                quality: 80,
+                progressive: true,
+                chromaSubsampling: '4:4:4',
+                trellisQuantisation: true,
+                overshootDeringing: true,
+                optimiseScans: true,
+                optimiseCoding: true,
+                quantisationTable: 2,
+                mozjpeg: true,
+              },
+            },
+          },
+        },
+      ],
+      ...options,
+    };
+    const { generator, minimizer, ...sharedOptions } = pluginOptions;
+    const resolvedMinimizer = this.isProductionMode ? minimizer : undefined;
+
     return this.#replaceConfig({
       ...this.#config,
-      optimization: {
-        ...this.#config.optimization,
-        minimizer: [
-          ...(this.#config.optimization.minimizer ?? []),
-          new ImageMinimizerPlugin({
-            minimizer: [
-              {
-                implementation: ImageMinimizerPlugin.sharpMinify,
-                options: {
-                  encodeOptions: {
-                    jpeg: {
-                      quality: 100,
-                    },
-                    webp: {
-                      lossless: true,
-                      effort: 6,
-                    },
-                    avif: {
-                      lossless: true,
-                      effort: 9,
-                    },
-                    heif: {
-                      lossless: true,
-                      effort: 9,
-                    },
-                    jxl: {
-                      lossless: true,
-                      effort: 9,
-                    },
-                    jp2: {
-                      lossless: true,
-                    },
-                    tiff: {
-                      quality: 100,
-                    },
-                    png: {
-                      effort: 10,
-                    },
-                    gif: {
-                      effort: 10,
-                    },
-                  },
-                },
-              },
-              {
-                implementation: ImageMinimizerPlugin.svgoMinify,
-                options: {
-                  encodeOptions: {
-                    multipass: true,
-                    plugins: ['preset-default'],
-                  },
-                },
-              },
-            ],
-            generator: [
-              {
-                preset: 'avif',
-                type: 'import',
-                implementation: ImageMinimizerPlugin.sharpGenerate,
-                options: {
-                  encodeOptions: {
-                    avif: {
-                      quality: 60,
-                      lossless: false,
-                      effort: 9,
-                      chromaSubsampling: '4:2:0',
-                      bitdepth: 8,
-                    },
-                  },
-                },
-              },
-              {
-                preset: 'webp',
-                type: 'import',
-                implementation: ImageMinimizerPlugin.sharpGenerate,
-                options: {
-                  encodeOptions: {
-                    webp: {
-                      quality: 90,
-                      alphaQuality: 100,
-                      lossless: false,
-                      nearLossless: false,
-                      smartSubsample: true,
-                      effort: 6,
-                      minSize: false,
-                      mixed: false,
-                      preset: 'default',
-                    },
-                  },
-                },
-              },
-              {
-                preset: 'png',
-                type: 'import',
-                implementation: ImageMinimizerPlugin.sharpGenerate,
-                options: {
-                  encodeOptions: {
-                    png: {
-                      progressive: true,
-                      compressionLevel: 9,
-                      adaptiveFiltering: true,
-                      quality: 100,
-                      effort: 10,
-                      palette: true,
-                      colours: 256,
-                      dither: 0.8,
-                    },
-                  },
-                },
-              },
-              {
-                preset: 'jpg',
-                type: 'import',
-                implementation: ImageMinimizerPlugin.sharpGenerate,
-                options: {
-                  encodeOptions: {
-                    jpg: {
-                      quality: 80,
-                      progressive: true,
-                      chromaSubsampling: '4:4:4',
-                      trellisQuantisation: true,
-                      overshootDeringing: true,
-                      optimiseScans: true,
-                      optimiseCoding: true,
-                      quantisationTable: 2,
-                      mozjpeg: true,
-                    },
-                  },
-                },
-              },
-            ],
-            ...options,
-          }),
+      module: {
+        ...this.#config.module,
+        rules: [
+          ...this.#config.module.rules,
+          {
+            resourceQuery: imageGeneratorResourceQuery,
+            type: 'asset/resource',
+          },
         ],
       },
+      plugins: [...this.#config.plugins, new ImageMinimizerPlugin({ ...sharedOptions, generator, minimizer: resolvedMinimizer })],
     });
   }
 

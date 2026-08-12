@@ -386,3 +386,25 @@ test('optimizes inline SVG without rasterizing it', async (context) => {
   assert.doesNotMatch(optimized, /intentionally removable/u);
   assert.ok(Buffer.byteLength(optimized) < Buffer.byteLength(source));
 });
+
+test('generates an image when the typed preset is the final query parameter', async (context) => {
+  const root = await mkdtemp(join(tmpdir(), 'tooling-webpack-image-generator-'));
+
+  context.after(async () => {
+    await rm(root, {
+      force: true,
+      recursive: true,
+    });
+  });
+
+  await writeFile(join(root, 'index.js'), "import image from './image.svg?width=16&as=avif'; process.stdout.write(image);\n");
+  await writeFile(join(root, 'image.svg'), '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><rect width="32" height="32" fill="red" /></svg>\n');
+
+  for (const mode of ['development', 'production']) {
+    const { outputPath, stderr, stdout } = await compileSource(root, `image-generator-${mode}`, (builder) => builder.addImageMinimizer(), mode);
+
+    assert.equal(stderr, '');
+    assert.match(stdout, /^\/immutable\.[a-f0-9]+\.avif$/u);
+    assert.ok((await readdir(outputPath, { recursive: true })).some((filename) => filename.endsWith('.avif')));
+  }
+});

@@ -47,15 +47,15 @@ test('copy template keeps development and production behavior explicit', () => {
   });
   assert.deepEqual(
     development.plugins.map(({ constructor }) => constructor.name),
-    ['DefinePlugin', 'HtmlWebpackPlugin', 'CopyPlugin'],
+    ['DefinePlugin', 'HtmlWebpackPlugin', 'CopyPlugin', 'ImageMinimizerPlugin'],
   );
   assert.deepEqual(
     production.plugins.map(({ constructor }) => constructor.name),
-    ['DefinePlugin', 'HtmlWebpackPlugin', 'CopyPlugin', 'CompressionPlugin', 'CompressionPlugin', 'GenerateSW'],
+    ['DefinePlugin', 'HtmlWebpackPlugin', 'CopyPlugin', 'ImageMinimizerPlugin', 'CompressionPlugin', 'CompressionPlugin', 'GenerateSW'],
   );
   assert.deepEqual(
     productionPreview.plugins.map(({ constructor }) => constructor.name),
-    ['DefinePlugin', 'HtmlWebpackPlugin', 'CopyPlugin'],
+    ['DefinePlugin', 'HtmlWebpackPlugin', 'CopyPlugin', 'ImageMinimizerPlugin'],
   );
   assert.equal(development.devtool, 'source-map');
   assert.equal(production.devtool, false);
