@@ -33,6 +33,15 @@ test('copy template keeps development and production behavior explicit', () => {
     { mode: 'production' },
   );
 
+  const productionPreview = createConfig(
+    {
+      APP_ENV: 'preview',
+      APP_NAME: 'Example application',
+      APP_VERSION: '2.0.0',
+    },
+    { mode: 'production' },
+  );
+
   assert.deepEqual(development.entry, {
     index: ['./src/index.ts'],
   });
@@ -44,6 +53,11 @@ test('copy template keeps development and production behavior explicit', () => {
     production.plugins.map(({ constructor }) => constructor.name),
     ['DefinePlugin', 'HtmlWebpackPlugin', 'CopyPlugin', 'CompressionPlugin', 'CompressionPlugin', 'GenerateSW'],
   );
+  assert.deepEqual(
+    productionPreview.plugins.map(({ constructor }) => constructor.name),
+    ['DefinePlugin', 'HtmlWebpackPlugin', 'CopyPlugin'],
+  );
   assert.equal(development.devtool, 'source-map');
-  assert.equal(production.devtool, 'hidden-source-map');
+  assert.equal(production.devtool, false);
+  assert.equal(productionPreview.devtool, false);
 });
