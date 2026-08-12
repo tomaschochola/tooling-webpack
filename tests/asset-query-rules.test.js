@@ -12,7 +12,7 @@
 
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -24,7 +24,7 @@ import { WebpackConfigBuilder } from '../src/index.js';
 const execute = promisify(execFile);
 const loaderDirectory = fileURLToPath(new URL('../node_modules/', import.meta.url));
 
-async function compileSource(root, outputName, configure, mode = 'development') {
+async function compileSource(root, outputName, configure, mode = 'development', { allowErrors = false, runBundle = true, target = 'node' } = {}) {
   const outputPath = join(root, outputName);
 
   const builder = configure(
@@ -49,7 +49,7 @@ async function compileSource(root, outputName, configure, mode = 'development') 
     resolveLoader: {
       modules: [loaderDirectory, 'node_modules'],
     },
-    target: 'node',
+    target,
     output: {
       ...base.output,
       filename: 'bundle.cjs',
@@ -91,21 +91,27 @@ async function compileSource(root, outputName, configure, mode = 'development') 
     });
   }
 
-  assert.equal(
-    statistics.hasErrors(),
-    false,
-    statistics.toString({
-      all: false,
-      errorDetails: true,
-      errors: true,
-    }),
-  );
+  if (!allowErrors) {
+    assert.equal(
+      statistics.hasErrors(),
+      false,
+      statistics.toString({
+        all: false,
+        errorDetails: true,
+        errors: true,
+      }),
+    );
+  }
 
-  return await execute(process.execPath, [join(outputPath, 'bundle.cjs')]);
+  return {
+    ...(runBundle && !statistics.hasErrors() ? await execute(process.execPath, [join(outputPath, 'bundle.cjs')]) : { stderr: '', stdout: '' }),
+    outputPath,
+    statistics,
+  };
 }
 
-test('compiles SCSS source independently of builder method order', async (context) => {
-  const root = await mkdtemp(join(tmpdir(), 'tooling-webpack-style-loaders-'));
+test('extracts compiled SCSS for default and link exports', async (context) => {
+  const root = await mkdtemp(join(tmpdir(), 'tooling-webpack-stylesheet-link-'));
 
   context.after(async () => {
     await rm(root, {
@@ -114,23 +120,73 @@ test('compiles SCSS source independently of builder method order', async (contex
     });
   });
 
-  await writeFile(join(root, 'index.js'), "import cssSource from './style.scss?source'; process.stdout.write(cssSource);\n");
   await writeFile(join(root, 'style.scss'), '$color: red;\n\n.example {\n  color: $color;\n}\n');
 
-  for (const [outputName, configure] of [
-    ['style-assets', (builder) => builder.addStyleLoaders().addAssetQueryRules()],
-    ['assets-style', (builder) => builder.addAssetQueryRules().addStyleLoaders()],
+  for (const [outputName, request] of [
+    ['default', './style.scss'],
+    ['link', './style.scss?link'],
   ]) {
-    const { stderr, stdout } = await compileSource(root, outputName, configure);
+    await writeFile(join(root, 'index.js'), `import '${request}';\n`);
+
+    const { outputPath, stderr, stdout } = await compileSource(root, outputName, (builder) => builder.addStyleLoaders(), 'development', {
+      runBundle: false,
+      target: 'web',
+    });
 
     assert.equal(stderr, '');
-    assert.match(stdout, /\.example\s*\{\s*color:\s*red;/u);
-    assert.doesNotMatch(stdout, /\$color/u);
+    assert.equal(stdout, '');
+    assert.equal((await readdir(outputPath)).filter((filename) => filename.endsWith('.css')).length, 1);
   }
 });
 
+test('injects compiled SCSS as a style element', async (context) => {
+  const root = await mkdtemp(join(tmpdir(), 'tooling-webpack-stylesheet-style-'));
+
+  context.after(async () => {
+    await rm(root, {
+      force: true,
+      recursive: true,
+    });
+  });
+
+  await writeFile(join(root, 'index.js'), ["import './style.scss?style';", ''].join('\n'));
+  await writeFile(join(root, 'style.scss'), '$color: red;\n\n.example {\n  color: $color;\n}\n');
+
+  const { outputPath, stderr, stdout } = await compileSource(root, 'style', (builder) => builder.addStyleLoaders(), 'development', {
+    runBundle: false,
+    target: 'web',
+  });
+  const bundle = await readFile(join(outputPath, 'bundle.cjs'), 'utf8');
+
+  assert.equal(stderr, '');
+  assert.equal(stdout, '');
+  assert.match(bundle, /document\.createElement\('style'\)/u);
+  assert.match(bundle, /\.example \{\\n {2}color: red;/u);
+  assert.doesNotMatch(bundle, /\$color/u);
+});
+
+test('exports compiled SCSS as text', async (context) => {
+  const root = await mkdtemp(join(tmpdir(), 'tooling-webpack-stylesheet-text-'));
+
+  context.after(async () => {
+    await rm(root, {
+      force: true,
+      recursive: true,
+    });
+  });
+
+  await writeFile(join(root, 'index.js'), "import cssText from './style.scss?text'; process.stdout.write(cssText);\n");
+  await writeFile(join(root, 'style.scss'), '$color: red;\n\n.example {\n  color: $color;\n}\n');
+
+  const { stderr, stdout } = await compileSource(root, 'text', (builder) => builder.addStyleLoaders());
+
+  assert.equal(stderr, '');
+  assert.match(stdout, /\.example\s*\{\s*color:\s*red;/u);
+  assert.doesNotMatch(stdout, /\$color/u);
+});
+
 test('exports compiled SCSS as a constructable stylesheet', async (context) => {
-  const root = await mkdtemp(join(tmpdir(), 'tooling-webpack-stylesheet-module-'));
+  const root = await mkdtemp(join(tmpdir(), 'tooling-webpack-stylesheet-sheet-'));
 
   context.after(async () => {
     await rm(root, {
@@ -142,21 +198,16 @@ test('exports compiled SCSS as a constructable stylesheet', async (context) => {
   await writeFile(join(root, 'index.js'), ["import sheet from './style.scss?sheet';", 'process.stdout.write(`${typeof sheet.replaceSync}\n${sheet.cssText}`);', ''].join('\n'));
   await writeFile(join(root, 'style.scss'), '$color: red;\n\n.example {\n  color: $color;\n}\n');
 
-  for (const [outputName, configure] of [
-    ['style-assets', (builder) => builder.addStyleLoaders().addAssetQueryRules()],
-    ['assets-style', (builder) => builder.addAssetQueryRules().addStyleLoaders()],
-  ]) {
-    const { stderr, stdout } = await compileSource(root, outputName, configure);
+  const { stderr, stdout } = await compileSource(root, 'sheet', (builder) => builder.addStyleLoaders());
 
-    assert.equal(stderr, '');
-    assert.match(stdout, /^function\n/u);
-    assert.match(stdout, /\.example\s*\{\s*color:\s*red;/u);
-    assert.doesNotMatch(stdout, /\$color/u);
-  }
+  assert.equal(stderr, '');
+  assert.match(stdout, /^function\n/u);
+  assert.match(stdout, /\.example\s*\{\s*color:\s*red;/u);
+  assert.doesNotMatch(stdout, /\$color/u);
 });
 
-test('keeps HTML asset queries independent of html-loader and builder method order', async (context) => {
-  const root = await mkdtemp(join(tmpdir(), 'tooling-webpack-html-asset-queries-'));
+test('exports stylesheet source through the generic asset query', async (context) => {
+  const root = await mkdtemp(join(tmpdir(), 'tooling-webpack-stylesheet-queries-'));
 
   context.after(async () => {
     await rm(root, {
@@ -165,22 +216,59 @@ test('keeps HTML asset queries independent of html-loader and builder method ord
     });
   });
 
-  await writeFile(join(root, 'index.js'), "import htmlSource from './page.html?source'; process.stdout.write(htmlSource);\n");
+  const source = '$color: red;\n\n.example {\n  color: $color;\n}\n';
+
+  await writeFile(join(root, 'index.js'), "import source from './style.scss?source'; process.stdout.write(source);\n");
+  await writeFile(join(root, 'style.scss'), source);
+
+  const { stderr, stdout } = await compileSource(root, 'source', (builder) => builder.addAssetQueryRules().addStyleLoaders());
+
+  assert.equal(stderr, '');
+  assert.equal(stdout, source);
+});
+
+test('rejects the unsupported raw stylesheet query', async (context) => {
+  const root = await mkdtemp(join(tmpdir(), 'tooling-webpack-stylesheet-raw-'));
+
+  context.after(async () => {
+    await rm(root, {
+      force: true,
+      recursive: true,
+    });
+  });
+
+  await writeFile(join(root, 'index.js'), "import './style.scss?raw';\n");
+  await writeFile(join(root, 'style.scss'), '$color: red;\n\n.example {\n  color: $color;\n}\n');
+
+  const { statistics } = await compileSource(root, 'raw', (builder) => builder.addAssetQueryRules().addStyleLoaders(), 'development', {
+    allowErrors: true,
+    runBundle: false,
+  });
+
+  assert.equal(statistics.hasErrors(), true);
+});
+
+test('imports HTML through html-loader without a resource query', async (context) => {
+  const root = await mkdtemp(join(tmpdir(), 'tooling-webpack-html-loader-'));
+
+  context.after(async () => {
+    await rm(root, {
+      force: true,
+      recursive: true,
+    });
+  });
+
+  await writeFile(join(root, 'index.js'), "import htmlSource from './page.html'; process.stdout.write(htmlSource);\n");
   await writeFile(join(root, 'page.html'), '<h1>Example</h1>\n');
 
-  for (const [outputName, configure] of [
-    ['html-assets', (builder) => builder.addHtmlLoader().addAssetQueryRules()],
-    ['assets-html', (builder) => builder.addAssetQueryRules().addHtmlLoader()],
-  ]) {
-    const { stderr, stdout } = await compileSource(root, outputName, configure);
+  const { stderr, stdout } = await compileSource(root, 'html', (builder) => builder.addHtmlLoader());
 
-    assert.equal(stderr, '');
-    assert.equal(stdout, '<h1>Example</h1>\n');
-  }
+  assert.equal(stderr, '');
+  assert.equal(stdout, '<h1>Example</h1>\n');
 });
 
-test('exports reviewed static template source unchanged', async (context) => {
-  const root = await mkdtemp(join(tmpdir(), 'tooling-webpack-static-template-'));
+test('exports template HTML through the source asset query unchanged', async (context) => {
+  const root = await mkdtemp(join(tmpdir(), 'tooling-webpack-template-source-'));
 
   context.after(async () => {
     await rm(root, {
@@ -189,20 +277,37 @@ test('exports reviewed static template source unchanged', async (context) => {
     });
   });
 
-  const source = '<section data-ref="example">\n  <h1>Example</h1>\n</section>\n';
+  const source = '<section data-ref="example">\n  <img src="./image.svg" />\n</section>\n';
 
-  await writeFile(join(root, 'index.js'), "import templateSource from './page.template.html?template'; process.stdout.write(templateSource);\n");
+  await writeFile(join(root, 'index.js'), "import templateSource from './page.template.html?source'; process.stdout.write(templateSource);\n");
   await writeFile(join(root, 'page.template.html'), source);
+  await writeFile(join(root, 'image.svg'), '<svg xmlns="http://www.w3.org/2000/svg" />\n');
 
-  for (const [outputName, configure] of [
-    ['html-assets', (builder) => builder.addHtmlLoader().addAssetQueryRules()],
-    ['assets-html', (builder) => builder.addAssetQueryRules().addHtmlLoader()],
-  ]) {
-    const { stderr, stdout } = await compileSource(root, outputName, configure);
+  const { stderr, stdout } = await compileSource(root, 'template', (builder) => builder.addAssetQueryRules().addHtmlLoader());
 
-    assert.equal(stderr, '');
-    assert.equal(stdout, source);
-  }
+  assert.equal(stderr, '');
+  assert.equal(stdout, source);
+});
+
+test('does not retain the template query contract', async (context) => {
+  const root = await mkdtemp(join(tmpdir(), 'tooling-webpack-template-query-'));
+
+  context.after(async () => {
+    await rm(root, {
+      force: true,
+      recursive: true,
+    });
+  });
+
+  await writeFile(join(root, 'index.js'), "import './page.template.html?template';\n");
+  await writeFile(join(root, 'page.template.html'), '<section>Example</section>\n');
+
+  const { statistics } = await compileSource(root, 'template', (builder) => builder.addAssetQueryRules().addHtmlLoader(), 'development', {
+    allowErrors: true,
+    runBundle: false,
+  });
+
+  assert.equal(statistics.hasErrors(), true);
 });
 
 test('optimizes inline SVG without rasterizing it', async (context) => {

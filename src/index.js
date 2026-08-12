@@ -25,7 +25,6 @@ import webpack from 'webpack';
 import WorkboxPlugin from 'workbox-webpack-plugin';
 import { constants } from 'zlib';
 
-const assetResourceQuery = /^\?(?:asset|inline|resource|source)$/;
 const defaultHtmlTemplate = fileURLToPath(new URL('../assets/index.html', import.meta.url));
 const require = createRequire(import.meta.url);
 const babelLoader = require.resolve('babel-loader');
@@ -33,7 +32,9 @@ const htmlLoader = require.resolve('html-loader');
 const postcssLoader = require.resolve('postcss-loader');
 const robotsMetaPattern = /<meta\b(?=[^>]*\sname\s*=\s*(?:"robots"|'robots'|robots(?=[\s/>])))[^>]*>/gi;
 const sassLoader = require.resolve('sass-loader');
-const staticTemplateResourceQuery = /^\?template$/;
+const stylesheetLinkResourceQuery = /^\?link$/;
+const stylesheetStyleResourceQuery = /^\?style$/;
+const stylesheetTextResourceQuery = /^\?text$/;
 const stylesheetResourceQuery = /^\?sheet$/;
 
 function escapeHtmlAttribute(value) {
@@ -365,7 +366,6 @@ export class WebpackConfigBuilder {
           {
             test: /\.(tsx|mts|ts|cts|jsx|mjs|js|cjs)$/i,
             exclude,
-            resourceQuery: { not: [/raw/] },
             use: [
               {
                 loader: babelLoader,
@@ -399,6 +399,30 @@ export class WebpackConfigBuilder {
             oneOf: [
               {
                 parser: {
+                  exportType: 'link',
+                },
+                resourceQuery: stylesheetLinkResourceQuery,
+                type: 'css/auto',
+                use: loaders,
+              },
+              {
+                parser: {
+                  exportType: 'style',
+                },
+                resourceQuery: stylesheetStyleResourceQuery,
+                type: 'css/auto',
+                use: loaders,
+              },
+              {
+                parser: {
+                  exportType: 'text',
+                },
+                resourceQuery: stylesheetTextResourceQuery,
+                type: 'css/auto',
+                use: loaders,
+              },
+              {
+                parser: {
                   exportType: 'css-style-sheet',
                 },
                 resourceQuery: stylesheetResourceQuery,
@@ -406,11 +430,7 @@ export class WebpackConfigBuilder {
                 use: loaders,
               },
               {
-                resourceQuery: assetResourceQuery,
-                use: loaders,
-              },
-              {
-                resourceQuery: { not: [/raw/] },
+                resourceQuery: /^$/,
                 type: 'css/auto',
                 use: loaders,
               },
@@ -429,13 +449,8 @@ export class WebpackConfigBuilder {
         rules: [
           ...this.#config.module.rules,
           {
-            resourceQuery: staticTemplateResourceQuery,
-            test: /\.template\.html$/i,
-            type: 'asset/source',
-          },
-          {
             test: /\.(html|php)$/i,
-            resourceQuery: { not: [/raw/, assetResourceQuery, staticTemplateResourceQuery] },
+            resourceQuery: /^$/,
             use: [
               {
                 loader: htmlLoader,
