@@ -120,7 +120,7 @@ test('emits local social images unchanged with hashed absolute URLs', async (con
     });
   });
 
-  await writeFile(join(root, 'index.js'), 'export const value = 42;\n');
+  await writeFile(join(root, 'index.js'), "import image from './open-graph.png?resource'; document.body.dataset.image = image;\n");
   await writeFile(join(root, 'open-graph.png'), image);
   await writeFile(
     join(root, 'index.html'),
@@ -128,10 +128,10 @@ test('emits local social images unchanged with hashed absolute URLs', async (con
       '<!doctype html>',
       '<html lang="en">',
       '<head>',
-      '<meta property="og:image" content="./open-graph.png?resource" />',
-      '<meta property="og:image:url" content="./open-graph.png?resource" />',
-      '<meta property="og:image:secure_url" content="./open-graph.png?resource" />',
-      '<meta name="twitter:image" content="./open-graph.png?resource" />',
+      '<meta property="og:image" content="./open-graph.png" />',
+      '<meta property="og:image:url" content="./open-graph.png" />',
+      '<meta property="og:image:secure_url" content="./open-graph.png" />',
+      '<meta name="twitter:image" content="./open-graph.png" />',
       '<meta name="description" content="./not-an-image.png?resource" />',
       '<meta property="og:image" content="https://external.example/image.png" />',
       '<title>Social image</title>',
@@ -169,7 +169,7 @@ test('emits local social images unchanged with hashed absolute URLs', async (con
   const html = await readFile(join(outputPath, 'index.html'), 'utf8');
   const expectedUrl = `https://cdn.example.com/application/${imageFiles[0]}`;
 
-  assert.equal(html.split(expectedUrl).length - 1, 4);
+  assert.equal(html.split(`content="${expectedUrl}"`).length - 1, 4);
   assert.match(html, /content="\.\/not-an-image\.png\?resource"/u);
   assert.match(html, /content="https:\/\/external\.example\/image\.png"/u);
 
