@@ -16,7 +16,19 @@ declare module '*?source' {
   export default value;
 }
 
+declare module '*&source' {
+  const value: string;
+
+  export default value;
+}
+
 declare module '*?resource' {
+  const value: string;
+
+  export default value;
+}
+
+declare module '*&resource' {
   const value: string;
 
   export default value;
@@ -28,58 +40,19 @@ declare module '*?inline' {
   export default value;
 }
 
+declare module '*&inline' {
+  const value: string;
+
+  export default value;
+}
+
 declare module '*?asset' {
   const value: string;
 
   export default value;
 }
 
-// Keep `as` last when combining image generator parameters. TypeScript module
-// patterns support one wildcard, so the declarations model arbitrary options
-// before the final preset (for example `?width=150&as=avif`).
-declare module '*?as=avif' {
-  const value: string;
-
-  export default value;
-}
-
-declare module '*&as=avif' {
-  const value: string;
-
-  export default value;
-}
-
-declare module '*?as=webp' {
-  const value: string;
-
-  export default value;
-}
-
-declare module '*&as=webp' {
-  const value: string;
-
-  export default value;
-}
-
-declare module '*?as=jpg' {
-  const value: string;
-
-  export default value;
-}
-
-declare module '*&as=jpg' {
-  const value: string;
-
-  export default value;
-}
-
-declare module '*?as=png' {
-  const value: string;
-
-  export default value;
-}
-
-declare module '*&as=png' {
+declare module '*&asset' {
   const value: string;
 
   export default value;

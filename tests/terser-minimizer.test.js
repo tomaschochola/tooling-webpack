@@ -15,19 +15,13 @@ import { test } from 'node:test';
 
 import { WebpackConfigBuilder } from '../src/index.js';
 
-function createTerserPlugin(options, ecmaVersion) {
-  let tooling = new WebpackConfigBuilder();
-
-  if (ecmaVersion !== undefined) {
-    tooling = tooling.setEcmaVersion(ecmaVersion);
-  }
-
-  const config = tooling.addTerserMinimizer(options).toConfig();
+function createTerserPlugin(options, ecmaVersion = 2025) {
+  const config = new WebpackConfigBuilder({ ecmaVersion }).addTerserMinimizer(options).toConfig();
 
   return config.optimization.minimizer[0];
 }
 
-test('targets ECMAScript 2025 in Terser by default', () => {
+test('uses the required ECMAScript output version', () => {
   const plugin = createTerserPlugin();
 
   assert.deepEqual(plugin.options.minimizer.options, {

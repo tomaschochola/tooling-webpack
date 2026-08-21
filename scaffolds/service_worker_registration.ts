@@ -10,6 +10,6 @@
  * @see {@link https://github.com/sponsors/tomaschochola} GitHub Sponsors
  */
 
-export { ArchivePlugin } from './archive_plugin.js';
-export { RobotsPlugin } from './robots_plugin.js';
-export { WebpackConfigBuilder } from './webpack_config_builder.js';
+import { registerServiceWorker } from '@tomaschochola/tooling-webpack/service-worker-registration';
+
+void registerServiceWorker();

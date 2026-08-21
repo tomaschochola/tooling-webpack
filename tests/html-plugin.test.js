@@ -18,7 +18,7 @@ import test from 'node:test';
 import webpack from 'webpack';
 import { WebpackConfigBuilder } from '../src/index.js';
 
-test('default HTML is self-contained', async (context) => {
+test('uses the client-owned HTML document without package metadata', async (context) => {
   const root = await mkdtemp(join(tmpdir(), 'tooling-webpack-html-'));
   const outputPath = join(root, 'dist');
 
@@ -30,8 +30,13 @@ test('default HTML is self-contained', async (context) => {
   });
 
   await writeFile(join(root, 'index.js'), 'export const value = 42;\n');
+  await writeFile(
+    join(root, 'index.html'),
+    '<!doctype html><html lang="cs"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=2" /><meta name="description" content="Client description" /><title>Client title</title></head><body></body></html>\n',
+  );
 
   const config = new WebpackConfigBuilder({
+    ecmaVersion: 2025,
     argv: {
       mode: 'development',
     },
@@ -41,7 +46,8 @@ test('default HTML is self-contained', async (context) => {
   })
     .setEntries({ index: join(root, 'index.js') })
     .setOutputPath(outputPath)
-    .addHtmlPlugin()
+    .addHtmlLoader()
+    .addHtmlPlugin({ template: join(root, 'index.html') })
     .toConfig();
 
   const compiler = webpack({
@@ -91,6 +97,9 @@ test('default HTML is self-contained', async (context) => {
 
   const html = await readFile(join(outputPath, 'index.html'), 'utf8');
 
-  assert.match(html, /<title>tomaschochola\/tooling-webpack<\/title>/u);
-  assert.doesNotMatch(html, /fonts\.googleapis\.com|fonts\.gstatic\.com/u);
+  assert.match(html, /<html lang="cs">/u);
+  assert.match(html, /<meta name="viewport" content="width=device-width, initial-scale=2" \/>/u);
+  assert.match(html, /<meta name="description" content="Client description" \/>/u);
+  assert.match(html, /<title>Client title<\/title>/u);
+  assert.doesNotMatch(html, /tomaschochola|tooling-webpack/u);
 });

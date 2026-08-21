@@ -16,6 +16,7 @@
     }
   ],
   "dependencies": {
+    "archiver": "^8.0.0",
     "babel-loader": "^10.1.1",
     "compression-webpack-plugin": "^12.0.0",
     "copy-webpack-plugin": "^14.0.0",
@@ -42,16 +43,22 @@
     "@tomaschochola/tooling-prettier": "github:tomaschochola/tooling-prettier#main",
     "@tomaschochola/tooling-trimmer": "github:tomaschochola/tooling-trimmer#main"
   },
+  "engines": {
+    "node": ">=22.15.0"
+  },
   "exports": {
     ".": "./src/index.js",
     "./modules": {
       "types": "./types/modules.d.ts"
+    },
+    "./service-worker-registration": {
+      "types": "./types/service_worker_registration.d.ts",
+      "default": "./src/service_worker_registration.js"
     }
   },
   "files": [
-    "assets",
+    "scaffolds",
     "src",
-    "templates",
     "types"
   ],
   "funding": {

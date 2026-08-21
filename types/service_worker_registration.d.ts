@@ -10,6 +10,11 @@
  * @see {@link https://github.com/sponsors/tomaschochola} GitHub Sponsors
  */
 
-export { ArchivePlugin } from './archive_plugin.js';
-export { RobotsPlugin } from './robots_plugin.js';
-export { WebpackConfigBuilder } from './webpack_config_builder.js';
+export interface ServiceWorkerRegistrationOptions {
+  minimumUpdateIntervalMilliseconds?: number;
+  onError?: (error: unknown) => void;
+  reloadOnUpdate?: boolean;
+  scriptURL?: string;
+}
+
+export function registerServiceWorker(options?: ServiceWorkerRegistrationOptions): Promise<ServiceWorkerRegistration | undefined>;
