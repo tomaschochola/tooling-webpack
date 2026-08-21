@@ -177,7 +177,7 @@ test('retirement worker clears cache storage, unregisters, and reloads scoped cl
   assert.match(source, /globalThis\.skipWaiting/u);
 });
 
-test('browser service worker registration helper bundles independently', async (context) => {
+test('browser service worker registration entry bundles independently', async (context) => {
   const root = await mkdtemp(join(tmpdir(), 'tooling-webpack-registration-'));
   const outputPath = join(root, 'dist');
 
@@ -188,12 +188,13 @@ test('browser service worker registration helper bundles independently', async (
     });
   });
 
+  const packageJson = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'));
   const builder = new WebpackConfigBuilder({
     ecmaVersion: 2025,
     argv: { mode: 'production' },
   })
     .setEntries({
-      index: [fileURLToPath(new URL('../scaffolds/service_worker_registration.ts', import.meta.url))],
+      index: [fileURLToPath(new URL('../src/register_service_worker.js', import.meta.url))],
     })
     .setOutputPath(outputPath)
     .addBabelLoader();
@@ -212,6 +213,7 @@ test('browser service worker registration helper bundles independently', async (
   });
 
   assert.equal(statistics.hasErrors(), false, statistics.toString({ all: false, errorDetails: true, errors: true }));
+  assert.equal(packageJson.exports['./register-service-worker'], './src/register_service_worker.js');
 
   const bundleFilename = statistics.toJson({ all: false, assets: true }).assets.find(({ name }) => name.endsWith('.js')).name;
   const bundle = await readFile(join(outputPath, bundleFilename), 'utf8');

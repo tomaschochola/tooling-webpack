@@ -10,6 +10,6 @@
  * @see {@link https://github.com/sponsors/tomaschochola} GitHub Sponsors
  */
 
-import { registerServiceWorker } from '@tomaschochola/tooling-webpack/service-worker-registration';
+import { registerServiceWorker } from './service_worker_registration.js';
 
 void registerServiceWorker();

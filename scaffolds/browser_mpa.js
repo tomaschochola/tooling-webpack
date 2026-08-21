@@ -45,7 +45,7 @@ export default function (env = {}, argv = {}) {
   tooling = tooling
     .setDevtool(tooling.isProductionMode ? false : 'source-map')
     .optimizeChunks()
-    .setEntries(Object.fromEntries(pages.map(({ entry, name }) => [name, [...(isProductionApp ? ['./src/service_worker_registration.ts'] : []), ...entry]])))
+    .setEntries(Object.fromEntries(pages.map(({ entry, name }) => [name, [...(isProductionApp ? ['@tomaschochola/tooling-webpack/register-service-worker'] : []), ...entry]])))
     .addBabelLoader()
     .addStyleLoaders()
     .addHtmlLoader()

@@ -62,7 +62,7 @@ test('browser SPA scaffold keeps development and production behavior explicit', 
     index: ['./src/index.ts'],
   });
   assert.deepEqual(production.entry, {
-    index: ['./src/service_worker_registration.ts', './src/index.ts'],
+    index: ['@tomaschochola/tooling-webpack/register-service-worker', './src/index.ts'],
   });
   assert.deepEqual(productionPreview.entry, {
     index: ['./src/index.ts'],
@@ -106,7 +106,7 @@ test('React SPA scaffold uses a TSX entry', () => {
     index: ['./src/index.tsx'],
   });
   assert.deepEqual(production.entry, {
-    index: ['./src/service_worker_registration.ts', './src/index.tsx'],
+    index: ['@tomaschochola/tooling-webpack/register-service-worker', './src/index.tsx'],
   });
   assert.deepEqual(productionPreview.entry, {
     index: ['./src/index.tsx'],
@@ -121,8 +121,8 @@ test('browser MPA scaffold emits an HTML document per entry without an SPA fallb
     index: ['./src/index.ts'],
   });
   assert.deepEqual(production.entry, {
-    admin: ['./src/service_worker_registration.ts', './src/admin.ts'],
-    index: ['./src/service_worker_registration.ts', './src/index.ts'],
+    admin: ['@tomaschochola/tooling-webpack/register-service-worker', './src/admin.ts'],
+    index: ['@tomaschochola/tooling-webpack/register-service-worker', './src/index.ts'],
   });
   assert.deepEqual(productionPreview.entry, {
     admin: ['./src/admin.ts'],
@@ -182,12 +182,11 @@ test('browser MPA scaffold emits an HTML document per entry without an SPA fallb
   assert.equal(productionPreview.devServer.historyApiFallback, undefined);
 });
 
-test('provides generic standard, PWA, and service worker scaffolds', async () => {
-  const [indexHtml, pwaHtml, manifestSource, registrationSource] = await Promise.all([
+test('provides generic standard and PWA scaffolds', async () => {
+  const [indexHtml, pwaHtml, manifestSource] = await Promise.all([
     readFile(new URL('../scaffolds/index.html', import.meta.url), 'utf8'),
     readFile(new URL('../scaffolds/pwa.html', import.meta.url), 'utf8'),
     readFile(new URL('../scaffolds/manifest.webmanifest', import.meta.url), 'utf8'),
-    readFile(new URL('../scaffolds/service_worker_registration.ts', import.meta.url), 'utf8'),
   ]);
   const manifest = JSON.parse(manifestSource);
 
@@ -210,7 +209,5 @@ test('provides generic standard, PWA, and service worker scaffolds', async () =>
   assert.match(pwaHtml, /type="application\/ld\+json"/u);
   assert.ok(manifest.icons.every(({ src }) => src.startsWith('../build/favicons/')));
   assert.equal(manifest.name, 'Application');
-  assert.match(registrationSource, /registerServiceWorker/u);
-  assert.doesNotMatch(registrationSource, /enabled|process\.env/u);
   assert.doesNotMatch(manifestSource, /tomaschochola|tooling-webpack|template-react|template-web-components/u);
 });

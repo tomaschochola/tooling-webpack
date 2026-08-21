@@ -32,7 +32,7 @@ export default function (env = {}, argv = {}) {
     .enableDevServerHistoryApiFallback()
     .optimizeChunks()
     .setEntries({
-      index: [...(isProductionApp ? ['./src/service_worker_registration.ts'] : []), './src/index.tsx'],
+      index: [...(isProductionApp ? ['@tomaschochola/tooling-webpack/register-service-worker'] : []), './src/index.tsx'],
     })
     .addBabelLoader()
     .addStyleLoaders()
