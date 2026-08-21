@@ -22,6 +22,7 @@ function createEnvironmentConfigs(createConfig) {
     {
       APP_ENV: 'development',
       APP_NAME: 'Example application',
+      APP_URL: 'https://development.example.com/',
       APP_VERSION: '2.0.0',
     },
     { mode: 'development' },
@@ -31,6 +32,7 @@ function createEnvironmentConfigs(createConfig) {
     {
       APP_ENV: 'production',
       APP_NAME: 'Example application',
+      APP_URL: 'https://example.com/',
       APP_VERSION: '2.0.0',
     },
     { mode: 'production' },
@@ -40,6 +42,7 @@ function createEnvironmentConfigs(createConfig) {
     {
       APP_ENV: 'preview',
       APP_NAME: 'Example application',
+      APP_URL: 'https://preview.example.com/',
       APP_VERSION: '2.0.0',
     },
     { mode: 'production' },
@@ -89,8 +92,8 @@ test('browser SPA scaffold keeps development and production behavior explicit', 
   assert.equal(production.devtool, false);
   assert.equal(productionPreview.devtool, false);
   assert.equal(development.output.publicPath, '/');
-  assert.equal(production.output.publicPath, '/');
-  assert.equal(productionPreview.output.publicPath, '/');
+  assert.equal(production.output.publicPath, 'https://example.com/');
+  assert.equal(productionPreview.output.publicPath, 'https://preview.example.com/');
   assert.deepEqual(development.devServer.historyApiFallback, {});
   assert.deepEqual(production.devServer.historyApiFallback, {});
   assert.deepEqual(productionPreview.devServer.historyApiFallback, {});
@@ -162,9 +165,9 @@ test('browser MPA scaffold emits an HTML document per entry without an SPA fallb
   assert.equal(development.plugins[3].options.minimizer, undefined);
   assert.equal(production.plugins[3].options.minimizer, undefined);
   assert.equal(productionPreview.plugins[3].options.minimizer, undefined);
-  assert.equal(development.output.publicPath, 'auto');
-  assert.equal(production.output.publicPath, 'auto');
-  assert.equal(productionPreview.output.publicPath, 'auto');
+  assert.equal(development.output.publicPath, '/');
+  assert.equal(production.output.publicPath, 'https://example.com/');
+  assert.equal(productionPreview.output.publicPath, 'https://preview.example.com/');
   assert.equal(development.optimization.runtimeChunk, 'single');
   assert.deepEqual(development.optimization.splitChunks, { chunks: 'all' });
 
@@ -200,6 +203,7 @@ test('provides generic standard, PWA, and service worker scaffolds', async () =>
   assert.match(pwaHtml, /name="application-name"/u);
   assert.match(pwaHtml, /property="og:type"/u);
   assert.match(pwaHtml, /name="twitter:card"/u);
+  assert.match(pwaHtml, /content="\.\.\/build\/open-graph\/open-graph\.png\?resource"/u);
   assert.match(pwaHtml, /href="\.\/manifest\.webmanifest"/u);
   assert.match(pwaHtml, /href="\.\.\/build\/favicons\/favicon\.ico"/u);
   assert.match(pwaHtml, /href="\.\.\/build\/favicons\/favicon\.svg"/u);

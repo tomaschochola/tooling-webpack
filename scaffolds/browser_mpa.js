@@ -40,6 +40,8 @@ export default function (env = {}, argv = {}) {
 
   const isProductionApp = tooling.isProductionMode && appEnv === 'production';
 
+  tooling = tooling.isProductionMode ? tooling.setPublicUrl(env.APP_URL) : tooling.setPublicPath('/');
+
   tooling = tooling
     .setDevtool(tooling.isProductionMode ? false : 'source-map')
     .optimizeChunks()

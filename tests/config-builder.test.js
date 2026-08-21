@@ -81,6 +81,31 @@ test('derives the public path from the deployment location by default', () => {
   assert.equal(config.output.publicPath, 'auto');
 });
 
+test('sets an absolute HTTPS public URL for externally consumed asset URLs', () => {
+  const root = new WebpackConfigBuilder({ ecmaVersion: 2025 }).setPublicUrl('https://example.com/').toConfig();
+  const subpath = new WebpackConfigBuilder({ ecmaVersion: 2025 }).setPublicUrl('https://cdn.example.com/application/').toConfig();
+
+  assert.equal(root.output.publicPath, 'https://example.com/');
+  assert.equal(subpath.output.publicPath, 'https://cdn.example.com/application/');
+});
+
+test('rejects public URLs that are not safe absolute deployment bases', () => {
+  for (const publicUrl of [
+    undefined,
+    null,
+    '/',
+    'http://example.com/',
+    'https://user@example.com/',
+    'https://example.com/application',
+    'https://example.com/?version=1',
+    'https://example.com/#fragment',
+  ]) {
+    assert.throws(() => new WebpackConfigBuilder({ ecmaVersion: 2025 }).setPublicUrl(publicUrl), {
+      name: 'TypeError',
+    });
+  }
+});
+
 test('derives the Webpack runtime target from Browserslist by default', () => {
   const config = new WebpackConfigBuilder({ ecmaVersion: 2025 }).toConfig();
 
@@ -142,6 +167,20 @@ test('rejects duplicate one-shot configuration methods without changing their fi
     message: 'setPublicPath() cannot be called more than once.',
   });
   assert.equal(builder.toConfig().output.publicPath, '/');
+});
+
+test('treats relative and absolute public path setters as the same one-shot operation', () => {
+  const relative = new WebpackConfigBuilder({ ecmaVersion: 2025 }).setPublicPath('/');
+  const absolute = new WebpackConfigBuilder({ ecmaVersion: 2025 }).setPublicUrl('https://example.com/');
+
+  assert.throws(() => relative.setPublicUrl('https://example.com/'), {
+    message: 'setPublicUrl() cannot be called more than once.',
+  });
+  assert.throws(() => absolute.setPublicPath('/'), {
+    message: 'setPublicPath() cannot be called more than once.',
+  });
+  assert.equal(relative.toConfig().output.publicPath, '/');
+  assert.equal(absolute.toConfig().output.publicPath, 'https://example.com/');
 });
 
 test('treats opposite CSS experiment methods as the same one-shot operation', () => {
@@ -423,6 +462,22 @@ test('delegates HTML template selection and accepts custom template content', ()
   assert.equal(defaultConfig.plugins[0].userOptions.templateContent, undefined);
   assert.equal(customConfig.plugins[0].userOptions.template, undefined);
   assert.equal(customConfig.plugins[0].userOptions.templateContent, templateContent);
+});
+
+test('extends HTML sources with social images while allowing callers to replace the defaults', () => {
+  const defaults = new WebpackConfigBuilder({ ecmaVersion: 2025 }).addHtmlLoader().toConfig();
+  const disabled = new WebpackConfigBuilder({ ecmaVersion: 2025 }).addHtmlLoader({ sources: false }).toConfig();
+  const sources = defaults.module.rules[0].use[0].options.sources;
+  const socialImage = sources.list[1];
+
+  assert.equal(sources.list[0], '...');
+  assert.equal(socialImage.tag, 'meta');
+  assert.equal(socialImage.attribute, 'content');
+  assert.equal(socialImage.type, 'src');
+  assert.equal(socialImage.filter('meta', 'content', [{ name: 'property', value: 'og:image' }]), true);
+  assert.equal(socialImage.filter('meta', 'content', [{ name: 'name', value: 'twitter:image' }]), true);
+  assert.equal(socialImage.filter('meta', 'content', [{ name: 'property', value: 'og:image:alt' }]), false);
+  assert.equal(disabled.module.rules[0].use[0].options.sources, false);
 });
 
 test('captures Webpack arguments and environment values at construction', () => {

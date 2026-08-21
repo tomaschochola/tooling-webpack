@@ -52,7 +52,8 @@ const methodPolicies = new Map([
   ['disableCssExperiment', { duplicate: 'error', operation: 'cssExperiment' }],
   ['setContext', { duplicate: 'error' }],
   ['setDevtool', { duplicate: 'error' }],
-  ['setPublicPath', { duplicate: 'error' }],
+  ['setPublicPath', { duplicate: 'error', operation: 'publicPath' }],
+  ['setPublicUrl', { duplicate: 'error', operation: 'publicPath' }],
   ['setTarget', { duplicate: 'error' }],
   ['setOutputPath', { duplicate: 'error' }],
   ['setDevServerPort', { duplicate: 'error' }],
@@ -125,6 +126,49 @@ function assertEcmaVersion(value) {
   }
 
   return value;
+}
+
+function assertPublicUrl(value) {
+  const message = 'Public URL must be an absolute HTTPS URL without credentials, query, or fragment and must end with "/".';
+
+  if (typeof value !== 'string' || !value.endsWith('/')) {
+    throw new TypeError(message);
+  }
+
+  let url;
+
+  try {
+    url = new URL(value);
+  } catch {
+    throw new TypeError(message);
+  }
+
+  if (url.protocol !== 'https:' || url.username !== '' || url.password !== '' || url.search !== '' || url.hash !== '') {
+    throw new TypeError(message);
+  }
+
+  return url.href;
+}
+
+function createDefaultHtmlSources() {
+  const socialImageProperties = new Set(['og:image', 'og:image:secure_url', 'og:image:url']);
+
+  return {
+    list: [
+      '...',
+      {
+        attribute: 'content',
+        filter: (_tag, _attribute, attributes) => {
+          const property = attributes.find(({ name }) => name.toLowerCase() === 'property')?.value.toLowerCase();
+          const name = attributes.find((attribute) => attribute.name.toLowerCase() === 'name')?.value.toLowerCase();
+
+          return socialImageProperties.has(property) || name === 'twitter:image';
+        },
+        tag: 'meta',
+        type: 'src',
+      },
+    ],
+  };
 }
 
 const assetResourceQuery = (resourceQuery) => hasQueryFlag(resourceQuery, 'asset');
@@ -280,6 +324,19 @@ export class WebpackConfigBuilder {
     );
   }
 
+  #setPublicPath(publicPath, method) {
+    return this.#replaceConfig(
+      {
+        ...this.#config,
+        output: {
+          ...this.#config.output,
+          publicPath,
+        },
+      },
+      method,
+    );
+  }
+
   enableCssExperiment() {
     return this.#setCssExperiment(true, 'enableCssExperiment');
   }
@@ -309,16 +366,11 @@ export class WebpackConfigBuilder {
   }
 
   setPublicPath(publicPath) {
-    return this.#replaceConfig(
-      {
-        ...this.#config,
-        output: {
-          ...this.#config.output,
-          publicPath,
-        },
-      },
-      'setPublicPath',
-    );
+    return this.#setPublicPath(publicPath, 'setPublicPath');
+  }
+
+  setPublicUrl(publicUrl) {
+    return this.#setPublicPath(assertPublicUrl(publicUrl), 'setPublicUrl');
   }
 
   setTarget(target) {
@@ -525,7 +577,7 @@ export class WebpackConfigBuilder {
     );
   }
 
-  addHtmlLoader(options = {}) {
+  addHtmlLoader({ sources = createDefaultHtmlSources(), ...options } = {}) {
     return this.#replaceConfig(
       {
         ...this.#config,
@@ -539,7 +591,10 @@ export class WebpackConfigBuilder {
               use: [
                 {
                   loader: htmlLoader,
-                  options,
+                  options: {
+                    ...options,
+                    sources,
+                  },
                 },
               ],
             },

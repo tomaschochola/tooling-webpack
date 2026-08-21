@@ -11,49 +11,17 @@
  */
 
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 import webpack from 'webpack';
 import { WebpackConfigBuilder } from '../src/index.js';
 
-test('uses the client-owned HTML document without package metadata', async (context) => {
-  const root = await mkdtemp(join(tmpdir(), 'tooling-webpack-html-'));
-  const outputPath = join(root, 'dist');
-
-  context.after(async () => {
-    await rm(root, {
-      force: true,
-      recursive: true,
-    });
-  });
-
-  await writeFile(join(root, 'index.js'), 'export const value = 42;\n');
-  await writeFile(
-    join(root, 'index.html'),
-    '<!doctype html><html lang="cs"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=2" /><meta name="description" content="Client description" /><title>Client title</title></head><body></body></html>\n',
-  );
-
-  const config = new WebpackConfigBuilder({
-    ecmaVersion: 2025,
-    argv: {
-      mode: 'development',
-    },
-    env: {
-      APP_NAME: 'Example application',
-    },
-  })
-    .setEntries({ index: join(root, 'index.js') })
-    .setOutputPath(outputPath)
-    .addHtmlLoader()
-    .addHtmlPlugin({ template: join(root, 'index.html') })
-    .toConfig();
-
+async function compile(config) {
   const compiler = webpack({
     ...config,
     devtool: false,
-    mode: 'development',
     target: 'web',
   });
 
@@ -94,6 +62,41 @@ test('uses the client-owned HTML document without package metadata', async (cont
       errors: true,
     }),
   );
+}
+
+test('uses the client-owned HTML document without package metadata', async (context) => {
+  const root = await mkdtemp(join(tmpdir(), 'tooling-webpack-html-'));
+  const outputPath = join(root, 'dist');
+
+  context.after(async () => {
+    await rm(root, {
+      force: true,
+      recursive: true,
+    });
+  });
+
+  await writeFile(join(root, 'index.js'), 'export const value = 42;\n');
+  await writeFile(
+    join(root, 'index.html'),
+    '<!doctype html><html lang="cs"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=2" /><meta name="description" content="Client description" /><title>Client title</title></head><body></body></html>\n',
+  );
+
+  const config = new WebpackConfigBuilder({
+    ecmaVersion: 2025,
+    argv: {
+      mode: 'development',
+    },
+    env: {
+      APP_NAME: 'Example application',
+    },
+  })
+    .setEntries({ index: join(root, 'index.js') })
+    .setOutputPath(outputPath)
+    .addHtmlLoader()
+    .addHtmlPlugin({ template: join(root, 'index.html') })
+    .toConfig();
+
+  await compile(config);
 
   const html = await readFile(join(outputPath, 'index.html'), 'utf8');
 
@@ -102,4 +105,69 @@ test('uses the client-owned HTML document without package metadata', async (cont
   assert.match(html, /<meta name="description" content="Client description" \/>/u);
   assert.match(html, /<title>Client title<\/title>/u);
   assert.doesNotMatch(html, /tomaschochola|tooling-webpack/u);
+});
+
+test('emits local social images unchanged with hashed absolute URLs', async (context) => {
+  const root = await mkdtemp(join(tmpdir(), 'tooling-webpack-social-image-'));
+  const outputPath = join(root, 'dist');
+  const image = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=', 'base64');
+
+  context.after(async () => {
+    await rm(root, {
+      force: true,
+      recursive: true,
+    });
+  });
+
+  await writeFile(join(root, 'index.js'), 'export const value = 42;\n');
+  await writeFile(join(root, 'open-graph.png'), image);
+  await writeFile(
+    join(root, 'index.html'),
+    [
+      '<!doctype html>',
+      '<html lang="en">',
+      '<head>',
+      '<meta property="og:image" content="./open-graph.png?resource" />',
+      '<meta property="og:image:url" content="./open-graph.png?resource" />',
+      '<meta property="og:image:secure_url" content="./open-graph.png?resource" />',
+      '<meta name="twitter:image" content="./open-graph.png?resource" />',
+      '<meta name="description" content="./not-an-image.png?resource" />',
+      '<meta property="og:image" content="https://external.example/image.png" />',
+      '<title>Social image</title>',
+      '</head>',
+      '<body></body>',
+      '</html>',
+      '',
+    ].join('\n'),
+  );
+
+  const config = new WebpackConfigBuilder({
+    ecmaVersion: 2025,
+    argv: {
+      mode: 'production',
+    },
+  })
+    .setPublicUrl('https://cdn.example.com/application/')
+    .setEntries({ index: join(root, 'index.js') })
+    .setOutputPath(outputPath)
+    .addHtmlLoader()
+    .addAssetQueryRules()
+    .addImageMinimizer()
+    .addHtmlPlugin({ template: join(root, 'index.html') })
+    .toConfig();
+
+  await compile(config);
+
+  const files = await readdir(outputPath);
+  const imageFiles = files.filter((filename) => filename.endsWith('.png'));
+
+  assert.equal(imageFiles.length, 1);
+  assert.deepEqual(await readFile(join(outputPath, imageFiles[0])), image);
+
+  const html = await readFile(join(outputPath, 'index.html'), 'utf8');
+  const expectedUrl = `https://cdn.example.com/application/${imageFiles[0]}`;
+
+  assert.equal(html.split(expectedUrl).length - 1, 4);
+  assert.match(html, /content="\.\/not-an-image\.png\?resource"/u);
+  assert.match(html, /content="https:\/\/external\.example\/image\.png"/u);
 });
