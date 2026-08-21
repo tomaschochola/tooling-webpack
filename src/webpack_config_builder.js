@@ -44,6 +44,7 @@ const jsonReferenceModuleLoader = fileURLToPath(new URL('./json_reference_module
 const jsonReferencesLoader = fileURLToPath(new URL('./json_references_loader.js', import.meta.url));
 const postcssLoader = require.resolve('postcss-loader');
 const sassLoader = require.resolve('sass-loader');
+const serviceWorkerRegistrationEntry = '@tomaschochola/tooling-webpack/register-service-worker';
 const serviceWorkerRetirementSource = fileURLToPath(new URL('./service_worker_retirement.js', import.meta.url));
 const supportedEcmaVersions = new Set([5, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025]);
 const webpackModes = new Set(['development', 'none', 'production']);
@@ -98,6 +99,24 @@ function explode(value) {
   }
 
   return value;
+}
+
+function entryImportsRequest(entry, request) {
+  if (typeof entry === 'string') {
+    return entry === request;
+  }
+
+  if (Array.isArray(entry)) {
+    return entry.some((item) => entryImportsRequest(item, request));
+  }
+
+  return typeof entry === 'object' && entry !== null && Object.hasOwn(entry, 'import') && entryImportsRequest(entry.import, request);
+}
+
+function assertServiceWorkerRetirementEntries(entries) {
+  if (typeof entries === 'object' && entries !== null && Object.values(entries).some((entry) => entryImportsRequest(entry, serviceWorkerRegistrationEntry))) {
+    throw new Error(`Service Worker retirement builds must not include the "${serviceWorkerRegistrationEntry}" entry because it would register the retirement worker again.`);
+  }
 }
 
 function hasQueryFlag(resourceQuery, name) {
@@ -187,6 +206,7 @@ export class WebpackConfigBuilder {
   #config;
   #ecmaVersion;
   #jsonReferencesLoaderIndex;
+  #serviceWorkerRetirement;
 
   constructor({ ecmaVersion, env = {}, argv = {} } = {}) {
     this.#appliedMethods = new Set();
@@ -194,6 +214,7 @@ export class WebpackConfigBuilder {
     this.#argv = { ...argv };
     this.#ecmaVersion = assertEcmaVersion(ecmaVersion);
     this.#jsonReferencesLoaderIndex = 0;
+    this.#serviceWorkerRetirement = false;
 
     this.#config = {
       mode: this.webpackMode,
@@ -729,14 +750,19 @@ export class WebpackConfigBuilder {
   }
 
   addServiceWorkerRetirement() {
-    return this.#runMethod('addServiceWorkerRetirement', () =>
-      this.addCopyPlugin([
+    return this.#runMethod('addServiceWorkerRetirement', () => {
+      assertServiceWorkerRetirementEntries(this.#config.entry);
+      const result = this.addCopyPlugin([
         {
           from: serviceWorkerRetirementSource,
           to: 'sw.js',
         },
-      ]),
-    );
+      ]);
+
+      this.#serviceWorkerRetirement = true;
+
+      return result;
+    });
   }
 
   addHtmlPlugin(options = {}) {
@@ -1136,6 +1162,10 @@ export class WebpackConfigBuilder {
   }
 
   toConfig() {
+    if (this.#serviceWorkerRetirement) {
+      assertServiceWorkerRetirementEntries(this.#config.entry);
+    }
+
     const config = {
       ...this.#config,
       output: { ...this.#config.output },
