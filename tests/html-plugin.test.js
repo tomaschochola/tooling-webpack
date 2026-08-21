@@ -110,6 +110,7 @@ test('uses the client-owned HTML document without package metadata', async (cont
 test('emits local social images unchanged with hashed absolute URLs', async (context) => {
   const root = await mkdtemp(join(tmpdir(), 'tooling-webpack-social-image-'));
   const outputPath = join(root, 'dist');
+  const archivePath = join(root, 'application.zip');
   const image = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=', 'base64');
 
   context.after(async () => {
@@ -154,6 +155,7 @@ test('emits local social images unchanged with hashed absolute URLs', async (con
     .addAssetQueryRules()
     .addImageMinimizer()
     .addHtmlPlugin({ template: join(root, 'index.html') })
+    .addArchivePlugin({ checksum: false, destination: archivePath })
     .toConfig();
 
   await compile(config);
@@ -170,4 +172,9 @@ test('emits local social images unchanged with hashed absolute URLs', async (con
   assert.equal(html.split(expectedUrl).length - 1, 4);
   assert.match(html, /content="\.\/not-an-image\.png\?resource"/u);
   assert.match(html, /content="https:\/\/external\.example\/image\.png"/u);
+
+  const archive = await readFile(archivePath);
+
+  assert.equal(archive.includes(Buffer.from(imageFiles[0])), true);
+  assert.equal(archive.includes(Buffer.from(`${imageFiles[0]}?resource`)), false);
 });

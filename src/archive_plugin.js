@@ -26,19 +26,22 @@ const archiveExtensions = new Map([
 const archiveTimestamp = new Date('1980-01-01T00:00:00.000Z');
 
 function assertArchiveAssetName(name) {
+  const suffixIndex = typeof name === 'string' ? name.search(/[?#]/u) : -1;
+  const normalizedName = suffixIndex === -1 ? name : name.slice(0, suffixIndex);
+
   if (
-    typeof name !== 'string' ||
-    name.length === 0 ||
-    name.includes('\\') ||
-    name.includes('\0') ||
-    name.startsWith('/') ||
-    /^[a-z]:\//iu.test(name) ||
-    name.split('/').some((segment) => segment === '' || segment === '.' || segment === '..')
+    typeof normalizedName !== 'string' ||
+    normalizedName.length === 0 ||
+    normalizedName.includes('\\') ||
+    normalizedName.includes('\0') ||
+    normalizedName.startsWith('/') ||
+    /^[a-z]:\//iu.test(normalizedName) ||
+    normalizedName.split('/').some((segment) => segment === '' || segment === '.' || segment === '..')
   ) {
     throw new Error(`Cannot archive unsafe Webpack asset name "${name}".`);
   }
 
-  return name;
+  return normalizedName;
 }
 
 function createArchive(format) {
@@ -149,13 +152,21 @@ export class ArchivePlugin {
           stage: compiler.webpack.Compilation.PROCESS_ASSETS_STAGE_REPORT + 1,
         },
         () => {
-          assetsByCompilation.set(
-            compilation,
-            [...compilation.getAssets()].sort(compareArchiveAssets).map((asset) => ({
-              name: assertArchiveAssetName(asset.name),
-              source: toBuffer(asset.source.source()),
-            })),
-          );
+          const assets = new Map();
+
+          for (const asset of compilation.getAssets()) {
+            const name = assertArchiveAssetName(asset.name);
+            const source = toBuffer(asset.source.source());
+            const existing = assets.get(name);
+
+            if (existing !== undefined && !existing.source.equals(source)) {
+              throw new Error(`Cannot archive conflicting Webpack assets as "${name}".`);
+            }
+
+            assets.set(name, { name, source });
+          }
+
+          assetsByCompilation.set(compilation, [...assets.values()].sort(compareArchiveAssets));
         },
       );
     });
