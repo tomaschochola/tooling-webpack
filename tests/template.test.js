@@ -65,11 +65,11 @@ test('browser SPA scaffold keeps development and production behavior explicit', 
     index: ['@tomaschochola/tooling-webpack/register-service-worker', './src/index.ts'],
   });
   assert.deepEqual(productionPreview.entry, {
-    index: ['./src/index.ts'],
+    index: ['@tomaschochola/tooling-webpack/register-service-worker', './src/index.ts'],
   });
   assert.deepEqual(pluginNames(development), ['DefinePlugin', 'HtmlWebpackPlugin', 'ImageMinimizerPlugin']);
   assert.deepEqual(pluginNames(production), ['DefinePlugin', 'HtmlWebpackPlugin', 'ImageMinimizerPlugin', 'CompressionPlugin', 'CompressionPlugin', 'GenerateSW', 'ArchivePlugin']);
-  assert.deepEqual(pluginNames(productionPreview), ['DefinePlugin', 'HtmlWebpackPlugin', 'ImageMinimizerPlugin']);
+  assert.deepEqual(pluginNames(productionPreview), pluginNames(production));
   assert.equal(development.plugins[2].options.minimizer, undefined);
   assert.equal(production.plugins[2].options.minimizer, undefined);
   assert.equal(productionPreview.plugins[2].options.minimizer, undefined);
@@ -109,7 +109,7 @@ test('React SPA scaffold uses a TSX entry', () => {
     index: ['@tomaschochola/tooling-webpack/register-service-worker', './src/index.tsx'],
   });
   assert.deepEqual(productionPreview.entry, {
-    index: ['./src/index.tsx'],
+    index: ['@tomaschochola/tooling-webpack/register-service-worker', './src/index.tsx'],
   });
 });
 
@@ -125,8 +125,8 @@ test('browser MPA scaffold emits an HTML document per entry without an SPA fallb
     index: ['@tomaschochola/tooling-webpack/register-service-worker', './src/index.ts'],
   });
   assert.deepEqual(productionPreview.entry, {
-    admin: ['./src/admin.ts'],
-    index: ['./src/index.ts'],
+    admin: ['@tomaschochola/tooling-webpack/register-service-worker', './src/admin.ts'],
+    index: ['@tomaschochola/tooling-webpack/register-service-worker', './src/index.ts'],
   });
   assert.deepEqual(pluginNames(development), ['DefinePlugin', 'HtmlWebpackPlugin', 'HtmlWebpackPlugin', 'ImageMinimizerPlugin']);
   assert.deepEqual(pluginNames(production), [
@@ -139,7 +139,7 @@ test('browser MPA scaffold emits an HTML document per entry without an SPA fallb
     'GenerateSW',
     'ArchivePlugin',
   ]);
-  assert.deepEqual(pluginNames(productionPreview), ['DefinePlugin', 'HtmlWebpackPlugin', 'HtmlWebpackPlugin', 'ImageMinimizerPlugin']);
+  assert.deepEqual(pluginNames(productionPreview), pluginNames(production));
 
   const htmlPlugins = development.plugins.filter(({ constructor }) => constructor.name === 'HtmlWebpackPlugin');
 

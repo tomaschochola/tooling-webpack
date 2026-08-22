@@ -23,7 +23,7 @@ export default function (env = {}, argv = {}) {
   const appName = tooling.appName;
   const appVersion = tooling.appVersion;
 
-  const isProductionApp = tooling.isProductionMode && appEnv === 'production';
+  const isProductionBuild = tooling.isProductionMode;
 
   tooling = tooling.isProductionMode ? tooling.setPublicUrl(env.APP_URL) : tooling.setPublicPath('/');
 
@@ -32,7 +32,7 @@ export default function (env = {}, argv = {}) {
     .enableDevServerHistoryApiFallback()
     .optimizeChunks()
     .setEntries({
-      index: [...(isProductionApp ? ['@tomaschochola/tooling-webpack/register-service-worker'] : []), './src/index.ts'],
+      index: [...(isProductionBuild ? ['@tomaschochola/tooling-webpack/register-service-worker'] : []), './src/index.ts'],
     })
     .addBabelLoader()
     .addStyleLoaders()
@@ -64,7 +64,7 @@ export default function (env = {}, argv = {}) {
     .addJsonMinimizer()
     .addImageMinimizer();
 
-  if (isProductionApp) {
+  if (isProductionBuild) {
     tooling = tooling
       .addGzipCompressionPlugin()
       .addBrotliCompressionPlugin()
