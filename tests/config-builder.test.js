@@ -393,6 +393,35 @@ test('resolves the application environment from Webpack env, the process, then t
   }
 });
 
+test('resolves application indexability strictly from Webpack env or the process', () => {
+  const originalAppIndexable = process.env.APP_INDEXABLE;
+
+  try {
+    process.env.APP_INDEXABLE = 'true';
+
+    assert.equal(new WebpackConfigBuilder({ ecmaVersion: 2025 }).appIndexable, true);
+    assert.equal(new WebpackConfigBuilder({ ecmaVersion: 2025, env: { APP_INDEXABLE: false } }).appIndexable, false);
+    assert.equal(new WebpackConfigBuilder({ ecmaVersion: 2025, env: { APP_INDEXABLE: 'false' } }).appIndexable, false);
+    assert.equal(new WebpackConfigBuilder({ ecmaVersion: 2025, env: { APP_INDEXABLE: true } }).appIndexable, true);
+    assert.equal(new WebpackConfigBuilder({ ecmaVersion: 2025, env: { APP_INDEXABLE: 'true' } }).appIndexable, true);
+
+    assert.throws(() => new WebpackConfigBuilder({ ecmaVersion: 2025, env: { APP_INDEXABLE: 'yes' } }).appIndexable, {
+      message: 'APP_INDEXABLE must be true or false.',
+      name: 'TypeError',
+    });
+
+    delete process.env.APP_INDEXABLE;
+
+    assert.equal(new WebpackConfigBuilder({ ecmaVersion: 2025 }).appIndexable, false);
+  } finally {
+    if (originalAppIndexable === undefined) {
+      delete process.env.APP_INDEXABLE;
+    } else {
+      process.env.APP_INDEXABLE = originalAppIndexable;
+    }
+  }
+});
+
 test('resolves the application version from Webpack env, the process, then package metadata', () => {
   const originalAppVersion = process.env.APP_VERSION;
   const originalPackageVersion = process.env.npm_package_version;

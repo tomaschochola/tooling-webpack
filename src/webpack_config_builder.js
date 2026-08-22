@@ -147,6 +147,18 @@ function assertEcmaVersion(value) {
   return value;
 }
 
+function parseBoolean(value, name) {
+  if (value === true || value === 'true') {
+    return true;
+  }
+
+  if (value === false || value === 'false') {
+    return false;
+  }
+
+  throw new TypeError(`${name} must be true or false.`);
+}
+
 export function normalizePublicUrl(value) {
   const message = 'Public URL must be an absolute HTTPS URL without credentials, query, or fragment and must end with "/".';
 
@@ -329,6 +341,10 @@ export class WebpackConfigBuilder {
 
   get appEnv() {
     return this.#env.APP_ENV ?? process.env.APP_ENV ?? this.webpackMode;
+  }
+
+  get appIndexable() {
+    return parseBoolean(this.#env.APP_INDEXABLE ?? process.env.APP_INDEXABLE ?? false, 'APP_INDEXABLE');
   }
 
   get appName() {
