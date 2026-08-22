@@ -4,25 +4,21 @@
   "display": "standalone",
   "icons": [
     {
-      "purpose": "any",
       "sizes": "192x192",
       "src": "../build/favicons/icon-192x192.png",
       "type": "image/png"
     },
     {
-      "purpose": "any",
       "sizes": "384x384",
       "src": "../build/favicons/icon-384x384.png",
       "type": "image/png"
     },
     {
-      "purpose": "any",
       "sizes": "512x512",
       "src": "../build/favicons/icon-512x512.png",
       "type": "image/png"
     },
     {
-      "purpose": "any",
       "sizes": "1024x1024",
       "src": "../build/favicons/icon-1024x1024.png",
       "type": "image/png"
