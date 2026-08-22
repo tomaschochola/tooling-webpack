@@ -158,7 +158,7 @@ test('browser MPA scaffold emits an HTML document per entry without an SPA fallb
       {
         chunks: ['admin'],
         filename: 'admin/index.html',
-        template: './src/index.html',
+        template: './src/admin.html',
       },
     ],
   );

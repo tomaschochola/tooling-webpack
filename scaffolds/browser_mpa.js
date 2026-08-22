@@ -23,7 +23,7 @@ const pages = [
     entry: ['./src/admin.ts'],
     filename: 'admin/index.html',
     name: 'admin',
-    template: './src/index.html',
+    template: './src/admin.html',
   },
 ];
 
