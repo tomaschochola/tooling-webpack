@@ -40,13 +40,14 @@ export default function (env = {}, argv = {}) {
   const publicUrl = normalizePublicUrl(env.APP_URL);
 
   const isProduction = tooling.isProduction;
+  const isProductionBuild = tooling.isProductionBuild;
 
-  tooling = isProduction ? tooling.setPublicUrl(publicUrl) : tooling.setPublicPath('/');
+  tooling = isProductionBuild ? tooling.setPublicUrl(publicUrl) : tooling.setPublicPath('/');
 
   tooling = tooling
     .setDevtool(isProduction ? false : 'source-map')
     .optimizeChunks()
-    .setEntries(Object.fromEntries(pages.map(({ entry, name }) => [name, [...(isProduction ? ['@tomaschochola/tooling-webpack/register-service-worker'] : []), ...entry]])))
+    .setEntries(Object.fromEntries(pages.map(({ entry, name }) => [name, [...(isProductionBuild ? ['@tomaschochola/tooling-webpack/register-service-worker'] : []), ...entry]])))
     .addBabelLoader()
     .addStyleLoaders()
     .addHtmlLoader({
@@ -83,7 +84,7 @@ export default function (env = {}, argv = {}) {
 
   tooling = tooling.addTerserMinimizer().addCssMinimizer().addHtmlMinimizer().addJsonMinimizer().addImageMinimizer();
 
-  if (isProduction) {
+  if (isProductionBuild) {
     tooling = tooling
       .addGzipCompressionPlugin()
       .addBrotliCompressionPlugin()

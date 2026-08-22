@@ -316,7 +316,11 @@ export class WebpackConfigBuilder {
   }
 
   get isProduction() {
-    return this.webpackBuild === true && this.webpackMode === 'production';
+    return this.webpackMode === 'production';
+  }
+
+  get isProductionBuild() {
+    return this.webpackBuild === true && this.isProduction;
   }
 
   get nodeEnv() {

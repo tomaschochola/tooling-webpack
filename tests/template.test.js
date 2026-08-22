@@ -108,7 +108,7 @@ test('browser SPA scaffold keeps development and production behavior explicit', 
   assert.equal(development.devtool, 'source-map');
   assert.equal(production.devtool, false);
   assert.equal(productionPreview.devtool, false);
-  assert.equal(productionServe.devtool, 'source-map');
+  assert.equal(productionServe.devtool, false);
   assert.equal(development.output.publicPath, '/');
   assert.equal(production.output.publicPath, 'https://example.com/');
   assert.equal(productionPreview.output.publicPath, 'https://preview.example.com/');

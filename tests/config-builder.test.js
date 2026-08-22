@@ -116,7 +116,7 @@ test('derives the Webpack runtime target from Browserslist by default', () => {
   assert.equal(config.target, 'browserslist');
 });
 
-test('disables source maps only for production builds by default', () => {
+test('disables source maps in production mode by default', () => {
   const production = new WebpackConfigBuilder({
     ecmaVersion: 2025,
     env: {
@@ -144,10 +144,10 @@ test('disables source maps only for production builds by default', () => {
 
   assert.equal(production.devtool, false);
   assert.equal(development.devtool, 'source-map');
-  assert.equal(productionServe.devtool, 'source-map');
+  assert.equal(productionServe.devtool, false);
 });
 
-test('identifies only production-mode builds as production', () => {
+test('distinguishes production compilation from production build output', () => {
   const developmentBuild = new WebpackConfigBuilder({
     ecmaVersion: 2025,
     env: { WEBPACK_BUILD: true },
@@ -174,10 +174,15 @@ test('identifies only production-mode builds as production', () => {
   });
 
   assert.equal(developmentBuild.isProduction, false);
-  assert.equal(productionConfiguration.isProduction, false);
+  assert.equal(developmentBuild.isProductionBuild, false);
+  assert.equal(productionConfiguration.isProduction, true);
+  assert.equal(productionConfiguration.isProductionBuild, false);
   assert.equal(productionBuild.isProduction, true);
-  assert.equal(productionServe.isProduction, false);
-  assert.equal(productionWatch.isProduction, false);
+  assert.equal(productionBuild.isProductionBuild, true);
+  assert.equal(productionServe.isProduction, true);
+  assert.equal(productionServe.isProductionBuild, false);
+  assert.equal(productionWatch.isProduction, true);
+  assert.equal(productionWatch.isProductionBuild, false);
 });
 
 test('enables only the CSS experiment by default', () => {
