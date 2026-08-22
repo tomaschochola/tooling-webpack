@@ -1,7 +1,6 @@
 {
   "background_color": "#ffffff",
   "description": "Application description.",
-  "dir": "ltr",
   "display": "standalone",
   "icons": [
     {
