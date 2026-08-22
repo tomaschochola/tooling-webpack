@@ -19,6 +19,7 @@ import test from 'node:test';
 import webpack from 'webpack';
 import { WebpackConfigBuilder } from '../src/index.js';
 import { registerServiceWorker } from '../src/service_worker_registration.js';
+import { resolveServiceWorkerScriptURL } from '../src/service_worker_script_url.js';
 
 function replaceGlobal(context, name, value) {
   const descriptor = Object.getOwnPropertyDescriptor(globalThis, name);
@@ -177,6 +178,12 @@ test('retirement worker clears cache storage, unregisters, and reloads scoped cl
   assert.match(source, /globalThis\.skipWaiting/u);
 });
 
+test('resolves the service worker script from root and subpath Webpack public paths on the current origin', () => {
+  assert.equal(resolveServiceWorkerScriptURL('https://cdn.example.com/', 'https://application.example.com'), '/sw.js');
+  assert.equal(resolveServiceWorkerScriptURL('https://cdn.example.com/application/', 'https://application.example.com'), '/application/sw.js');
+  assert.equal(resolveServiceWorkerScriptURL('/application/', 'https://application.example.com'), '/application/sw.js');
+});
+
 test('browser service worker registration entry bundles independently', async (context) => {
   const root = await mkdtemp(join(tmpdir(), 'tooling-webpack-registration-'));
   const outputPath = join(root, 'dist');
@@ -207,7 +214,7 @@ test('browser service worker registration entry bundles independently', async (c
     output: {
       ...base.output,
       path: outputPath,
-      publicPath: '/',
+      publicPath: 'https://cdn.example.com/application/',
     },
     target: 'web',
   });
@@ -220,6 +227,7 @@ test('browser service worker registration entry bundles independently', async (c
 
   assert.match(bundle, /updateViaCache/u);
   assert.match(bundle, /serviceWorker/u);
+  assert.match(bundle, /https:\/\/cdn\.example\.com\/application\//u);
   assert.doesNotMatch(bundle, /workbox-window|class Workbox/u);
   assert.doesNotMatch(bundle, /registration\.unregister/u);
 });
