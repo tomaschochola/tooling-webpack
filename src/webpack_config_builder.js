@@ -147,7 +147,7 @@ function assertEcmaVersion(value) {
   return value;
 }
 
-function assertPublicUrl(value) {
+export function normalizePublicUrl(value) {
   const message = 'Public URL must be an absolute HTTPS URL without credentials, query, or fragment and must end with "/".';
 
   if (typeof value !== 'string' || !value.endsWith('/')) {
@@ -167,6 +167,46 @@ function assertPublicUrl(value) {
   }
 
   return url.href;
+}
+
+function escapeHtml(value) {
+  return value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#39;');
+}
+
+function createHtmlVariablesPreprocessor(variables, preprocessor) {
+  if (variables === undefined) {
+    return preprocessor;
+  }
+
+  if (variables === null || typeof variables !== 'object' || Array.isArray(variables)) {
+    throw new TypeError('HTML variables must be an object.');
+  }
+
+  const normalizedVariables = new Map();
+
+  for (const [name, value] of Object.entries(variables)) {
+    if (!/^[A-Z][A-Z0-9_]*$/u.test(name)) {
+      throw new TypeError(`Invalid HTML variable name: ${name}.`);
+    }
+
+    if (typeof value !== 'string') {
+      throw new TypeError(`HTML variable ${name} must be a string.`);
+    }
+
+    normalizedVariables.set(name, escapeHtml(value));
+  }
+
+  return async (content, loaderContext) => {
+    const processedContent = preprocessor === undefined ? content : await preprocessor(content, loaderContext);
+
+    return processedContent.replace(/\{\{\s*([A-Z][A-Z0-9_]*)\s*\}\}/gu, (_token, name) => {
+      if (!normalizedVariables.has(name)) {
+        throw new TypeError(`Unknown HTML variable: ${name}.`);
+      }
+
+      return normalizedVariables.get(name);
+    });
+  };
 }
 
 function createDefaultHtmlSources() {
@@ -391,7 +431,7 @@ export class WebpackConfigBuilder {
   }
 
   setPublicUrl(publicUrl) {
-    return this.#setPublicPath(assertPublicUrl(publicUrl), 'setPublicUrl');
+    return this.#setPublicPath(normalizePublicUrl(publicUrl), 'setPublicUrl');
   }
 
   setTarget(target) {
@@ -598,7 +638,9 @@ export class WebpackConfigBuilder {
     );
   }
 
-  addHtmlLoader({ sources = createDefaultHtmlSources(), ...options } = {}) {
+  addHtmlLoader({ preprocessor, sources = createDefaultHtmlSources(), variables, ...options } = {}) {
+    const htmlPreprocessor = createHtmlVariablesPreprocessor(variables, preprocessor);
+
     return this.#replaceConfig(
       {
         ...this.#config,
@@ -614,6 +656,7 @@ export class WebpackConfigBuilder {
                   loader: htmlLoader,
                   options: {
                     ...options,
+                    ...(htmlPreprocessor === undefined ? {} : { preprocessor: htmlPreprocessor }),
                     sources,
                   },
                 },

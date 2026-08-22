@@ -10,7 +10,7 @@
  * @see {@link https://github.com/sponsors/tomaschochola} GitHub Sponsors
  */
 
-import { WebpackConfigBuilder } from '@tomaschochola/tooling-webpack';
+import { normalizePublicUrl, WebpackConfigBuilder } from '@tomaschochola/tooling-webpack';
 
 const pages = [
   {
@@ -37,10 +37,11 @@ export default function (env = {}, argv = {}) {
   const appEnv = tooling.appEnv;
   const appName = tooling.appName;
   const appVersion = tooling.appVersion;
+  const publicUrl = normalizePublicUrl(env.APP_URL);
 
   const isProductionBuild = tooling.isProductionMode;
 
-  tooling = tooling.isProductionMode ? tooling.setPublicUrl(env.APP_URL) : tooling.setPublicPath('/');
+  tooling = tooling.isProductionMode ? tooling.setPublicUrl(publicUrl) : tooling.setPublicPath('/');
 
   tooling = tooling
     .setDevtool(tooling.isProductionMode ? false : 'source-map')
@@ -48,7 +49,11 @@ export default function (env = {}, argv = {}) {
     .setEntries(Object.fromEntries(pages.map(({ entry, name }) => [name, [...(isProductionBuild ? ['@tomaschochola/tooling-webpack/register-service-worker'] : []), ...entry]])))
     .addBabelLoader()
     .addStyleLoaders()
-    .addHtmlLoader()
+    .addHtmlLoader({
+      variables: {
+        PUBLIC_URL: publicUrl,
+      },
+    })
     .addJsonReferencesLoader({
       generator: {
         filename: 'manifest.webmanifest',

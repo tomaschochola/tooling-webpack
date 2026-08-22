@@ -78,7 +78,7 @@ test('uses the client-owned HTML document without package metadata', async (cont
   await writeFile(join(root, 'index.js'), 'export const value = 42;\n');
   await writeFile(
     join(root, 'index.html'),
-    '<!doctype html><html lang="cs"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=2" /><meta name="description" content="Client description" /><title>Client title</title></head><body></body></html>\n',
+    '<!doctype html><html lang="cs"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=2" /><meta name="description" content="Client description" /><link rel="canonical" href="{{ PUBLIC_URL }}" /><title>Client title</title></head><body></body></html>\n',
   );
 
   const config = new WebpackConfigBuilder({
@@ -92,7 +92,11 @@ test('uses the client-owned HTML document without package metadata', async (cont
   })
     .setEntries({ index: join(root, 'index.js') })
     .setOutputPath(outputPath)
-    .addHtmlLoader()
+    .addHtmlLoader({
+      variables: {
+        PUBLIC_URL: 'https://example.com/application/',
+      },
+    })
     .addHtmlPlugin({ template: join(root, 'index.html') })
     .toConfig();
 
@@ -103,6 +107,7 @@ test('uses the client-owned HTML document without package metadata', async (cont
   assert.match(html, /<html lang="cs">/u);
   assert.match(html, /<meta name="viewport" content="width=device-width, initial-scale=2" \/>/u);
   assert.match(html, /<meta name="description" content="Client description" \/>/u);
+  assert.match(html, /<link rel="canonical" href="https:\/\/example\.com\/application\/" \/>/u);
   assert.match(html, /<title>Client title<\/title>/u);
   assert.doesNotMatch(html, /tomaschochola|tooling-webpack/u);
 });

@@ -14,7 +14,7 @@ import assert from 'node:assert/strict';
 import { resolve } from 'node:path';
 import { test } from 'node:test';
 
-import { WebpackConfigBuilder } from '../src/index.js';
+import { normalizePublicUrl, WebpackConfigBuilder } from '../src/index.js';
 
 test('requires a supported ECMAScript output version', () => {
   for (const ecmaVersion of [undefined, null, 6, 2014, 2026, '2025']) {
@@ -87,6 +87,10 @@ test('sets an absolute HTTPS public URL for externally consumed asset URLs', () 
 
   assert.equal(root.output.publicPath, 'https://example.com/');
   assert.equal(subpath.output.publicPath, 'https://cdn.example.com/application/');
+});
+
+test('normalizes public URLs independently for other deployment metadata', () => {
+  assert.equal(normalizePublicUrl('https://EXAMPLE.com/application/'), 'https://example.com/application/');
 });
 
 test('rejects public URLs that are not safe absolute deployment bases', () => {
@@ -478,6 +482,36 @@ test('extends HTML sources with social images while allowing callers to replace 
   assert.equal(socialImage.filter('meta', 'content', [{ name: 'name', value: 'twitter:image' }]), true);
   assert.equal(socialImage.filter('meta', 'content', [{ name: 'property', value: 'og:image:alt' }]), false);
   assert.equal(disabled.module.rules[0].use[0].options.sources, false);
+});
+
+test('substitutes escaped HTML variables after a custom preprocessor', async () => {
+  const config = new WebpackConfigBuilder({ ecmaVersion: 2025 })
+    .addHtmlLoader({
+      preprocessor: (content) => content.replace('{{ SOURCE }}', '{{ PUBLIC_URL }}'),
+      variables: {
+        PUBLIC_URL: 'https://example.com/?left=1&right="two"',
+      },
+    })
+    .toConfig();
+  const preprocessor = config.module.rules[0].use[0].options.preprocessor;
+
+  assert.equal(await preprocessor('<link href="{{ SOURCE }}" />', {}), '<link href="https://example.com/?left=1&amp;right=&quot;two&quot;" />');
+});
+
+test('rejects invalid and unknown HTML variables', async () => {
+  for (const variables of [null, [], { lower_case: 'value' }, { PUBLIC_URL: 42 }]) {
+    assert.throws(() => new WebpackConfigBuilder({ ecmaVersion: 2025 }).addHtmlLoader({ variables }), {
+      name: 'TypeError',
+    });
+  }
+
+  const config = new WebpackConfigBuilder({ ecmaVersion: 2025 }).addHtmlLoader({ variables: {} }).toConfig();
+  const preprocessor = config.module.rules[0].use[0].options.preprocessor;
+
+  await assert.rejects(() => preprocessor('<link href="{{ UNKNOWN }}" />', {}), {
+    message: 'Unknown HTML variable: UNKNOWN.',
+    name: 'TypeError',
+  });
 });
 
 test('captures Webpack arguments and environment values at construction', () => {

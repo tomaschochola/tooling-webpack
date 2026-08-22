@@ -202,6 +202,7 @@ test('provides generic standard and PWA scaffolds', async () => {
   assert.match(pwaHtml, /name="application-name"/u);
   assert.match(pwaHtml, /property="og:type"/u);
   assert.match(pwaHtml, /name="twitter:card"/u);
+  assert.equal(pwaHtml.split('{{ PUBLIC_URL }}').length - 1, 2);
   assert.match(pwaHtml, /content="\.\.\/build\/open-graph\/open-graph\.png"/u);
   assert.match(pwaHtml, /href="\.\/manifest\.webmanifest"/u);
   assert.match(pwaHtml, /href="\.\.\/build\/favicons\/favicon\.ico"/u);
