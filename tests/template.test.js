@@ -24,6 +24,7 @@ function createEnvironmentConfigs(createConfig) {
       APP_NAME: 'Example application',
       APP_URL: 'https://development.example.com/',
       APP_VERSION: '2.0.0',
+      WEBPACK_BUILD: true,
     },
     { mode: 'development' },
   );
@@ -34,6 +35,7 @@ function createEnvironmentConfigs(createConfig) {
       APP_NAME: 'Example application',
       APP_URL: 'https://example.com/',
       APP_VERSION: '2.0.0',
+      WEBPACK_BUILD: true,
     },
     { mode: 'production' },
   );
@@ -44,11 +46,22 @@ function createEnvironmentConfigs(createConfig) {
       APP_NAME: 'Example application',
       APP_URL: 'https://preview.example.com/',
       APP_VERSION: '2.0.0',
+      WEBPACK_BUILD: true,
+    },
+    { mode: 'production' },
+  );
+  const productionServe = createConfig(
+    {
+      APP_ENV: 'development',
+      APP_NAME: 'Example application',
+      APP_URL: 'https://development.example.com/',
+      APP_VERSION: '2.0.0',
+      WEBPACK_SERVE: true,
     },
     { mode: 'production' },
   );
 
-  return { development, production, productionPreview };
+  return { development, production, productionPreview, productionServe };
 }
 
 function pluginNames(config) {
@@ -56,7 +69,7 @@ function pluginNames(config) {
 }
 
 test('browser SPA scaffold keeps development and production behavior explicit', () => {
-  const { development, production, productionPreview } = createEnvironmentConfigs(createSpaConfig);
+  const { development, production, productionPreview, productionServe } = createEnvironmentConfigs(createSpaConfig);
 
   assert.deepEqual(development.entry, {
     index: ['./src/index.ts'],
@@ -67,9 +80,13 @@ test('browser SPA scaffold keeps development and production behavior explicit', 
   assert.deepEqual(productionPreview.entry, {
     index: ['@tomaschochola/tooling-webpack/register-service-worker', './src/index.ts'],
   });
+  assert.deepEqual(productionServe.entry, {
+    index: ['./src/index.ts'],
+  });
   assert.deepEqual(pluginNames(development), ['DefinePlugin', 'HtmlWebpackPlugin', 'ImageMinimizerPlugin']);
   assert.deepEqual(pluginNames(production), ['DefinePlugin', 'HtmlWebpackPlugin', 'ImageMinimizerPlugin', 'CompressionPlugin', 'CompressionPlugin', 'GenerateSW', 'ArchivePlugin']);
   assert.deepEqual(pluginNames(productionPreview), pluginNames(production));
+  assert.deepEqual(pluginNames(productionServe), pluginNames(development));
   assert.equal(development.plugins[2].options.minimizer, undefined);
   assert.equal(production.plugins[2].options.minimizer, undefined);
   assert.equal(productionPreview.plugins[2].options.minimizer, undefined);
@@ -91,16 +108,18 @@ test('browser SPA scaffold keeps development and production behavior explicit', 
   assert.equal(development.devtool, 'source-map');
   assert.equal(production.devtool, false);
   assert.equal(productionPreview.devtool, false);
+  assert.equal(productionServe.devtool, 'source-map');
   assert.equal(development.output.publicPath, '/');
   assert.equal(production.output.publicPath, 'https://example.com/');
   assert.equal(productionPreview.output.publicPath, 'https://preview.example.com/');
+  assert.equal(productionServe.output.publicPath, '/');
   assert.deepEqual(development.devServer.historyApiFallback, {});
   assert.deepEqual(production.devServer.historyApiFallback, {});
   assert.deepEqual(productionPreview.devServer.historyApiFallback, {});
 });
 
 test('React SPA scaffold uses a TSX entry', () => {
-  const { development, production, productionPreview } = createEnvironmentConfigs(createReactSpaConfig);
+  const { development, production, productionPreview, productionServe } = createEnvironmentConfigs(createReactSpaConfig);
 
   assert.deepEqual(development.entry, {
     index: ['./src/index.tsx'],
@@ -111,10 +130,13 @@ test('React SPA scaffold uses a TSX entry', () => {
   assert.deepEqual(productionPreview.entry, {
     index: ['@tomaschochola/tooling-webpack/register-service-worker', './src/index.tsx'],
   });
+  assert.deepEqual(productionServe.entry, {
+    index: ['./src/index.tsx'],
+  });
 });
 
 test('browser MPA scaffold emits an HTML document per entry without an SPA fallback', () => {
-  const { development, production, productionPreview } = createEnvironmentConfigs(createMpaConfig);
+  const { development, production, productionPreview, productionServe } = createEnvironmentConfigs(createMpaConfig);
 
   assert.deepEqual(development.entry, {
     admin: ['./src/admin.ts'],
@@ -128,6 +150,10 @@ test('browser MPA scaffold emits an HTML document per entry without an SPA fallb
     admin: ['@tomaschochola/tooling-webpack/register-service-worker', './src/admin.ts'],
     index: ['@tomaschochola/tooling-webpack/register-service-worker', './src/index.ts'],
   });
+  assert.deepEqual(productionServe.entry, {
+    admin: ['./src/admin.ts'],
+    index: ['./src/index.ts'],
+  });
   assert.deepEqual(pluginNames(development), ['DefinePlugin', 'HtmlWebpackPlugin', 'HtmlWebpackPlugin', 'ImageMinimizerPlugin']);
   assert.deepEqual(pluginNames(production), [
     'DefinePlugin',
@@ -140,6 +166,7 @@ test('browser MPA scaffold emits an HTML document per entry without an SPA fallb
     'ArchivePlugin',
   ]);
   assert.deepEqual(pluginNames(productionPreview), pluginNames(production));
+  assert.deepEqual(pluginNames(productionServe), pluginNames(development));
 
   const htmlPlugins = development.plugins.filter(({ constructor }) => constructor.name === 'HtmlWebpackPlugin');
 
@@ -168,6 +195,7 @@ test('browser MPA scaffold emits an HTML document per entry without an SPA fallb
   assert.equal(development.output.publicPath, '/');
   assert.equal(production.output.publicPath, 'https://example.com/');
   assert.equal(productionPreview.output.publicPath, 'https://preview.example.com/');
+  assert.equal(productionServe.output.publicPath, '/');
   assert.equal(development.optimization.runtimeChunk, 'single');
   assert.deepEqual(development.optimization.splitChunks, { chunks: 'all' });
 

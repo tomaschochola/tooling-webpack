@@ -55,6 +55,7 @@ async function compileSource(root, outputName, configure, mode = 'development', 
   const builder = configure(
     new WebpackConfigBuilder({
       ecmaVersion: 2025,
+      env: mode === 'production' ? { WEBPACK_BUILD: true } : {},
       argv: {
         mode,
       },

@@ -267,7 +267,7 @@ export class WebpackConfigBuilder {
         path: resolve('build', assertWebpackMode(this.webpackMode), assertOutputPathSegment(this.appEnv, 'Application environment')),
         publicPath: 'auto',
       },
-      devtool: this.webpackMode === 'production' ? false : 'source-map',
+      devtool: this.isProduction ? false : 'source-map',
       performance: {
         hints: false,
       },
@@ -293,7 +293,7 @@ export class WebpackConfigBuilder {
         rules: [],
       },
       optimization: {
-        removeAvailableModules: this.webpackMode === 'production',
+        removeAvailableModules: this.isProduction,
         minimizer: [],
       },
     };
@@ -315,12 +315,8 @@ export class WebpackConfigBuilder {
     return this.#argv.mode ?? 'production';
   }
 
-  get isDevelopmentMode() {
-    return this.webpackMode === 'development';
-  }
-
-  get isProductionMode() {
-    return this.webpackMode === 'production';
+  get isProduction() {
+    return this.webpackBuild === true && this.webpackMode === 'production';
   }
 
   get nodeEnv() {
@@ -1154,7 +1150,7 @@ export class WebpackConfigBuilder {
       ...options,
     };
     const { generator, minimizer, ...sharedOptions } = pluginOptions;
-    const resolvedMinimizer = this.isProductionMode ? minimizer : undefined;
+    const resolvedMinimizer = this.isProduction ? minimizer : undefined;
 
     return this.#replaceConfig(
       {

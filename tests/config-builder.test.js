@@ -116,9 +116,12 @@ test('derives the Webpack runtime target from Browserslist by default', () => {
   assert.equal(config.target, 'browserslist');
 });
 
-test('emits source maps only in development by default', () => {
+test('disables source maps only for production builds by default', () => {
   const production = new WebpackConfigBuilder({
     ecmaVersion: 2025,
+    env: {
+      WEBPACK_BUILD: true,
+    },
     argv: {
       mode: 'production',
     },
@@ -129,31 +132,52 @@ test('emits source maps only in development by default', () => {
       mode: 'development',
     },
   }).toConfig();
+  const productionServe = new WebpackConfigBuilder({
+    ecmaVersion: 2025,
+    env: {
+      WEBPACK_SERVE: true,
+    },
+    argv: {
+      mode: 'production',
+    },
+  }).toConfig();
 
   assert.equal(production.devtool, false);
   assert.equal(development.devtool, 'source-map');
+  assert.equal(productionServe.devtool, 'source-map');
 });
 
-test('identifies development and production Webpack modes explicitly', () => {
-  const development = new WebpackConfigBuilder({
+test('identifies only production-mode builds as production', () => {
+  const developmentBuild = new WebpackConfigBuilder({
     ecmaVersion: 2025,
+    env: { WEBPACK_BUILD: true },
     argv: { mode: 'development' },
   });
-  const none = new WebpackConfigBuilder({
-    ecmaVersion: 2025,
-    argv: { mode: 'none' },
-  });
-  const production = new WebpackConfigBuilder({
+  const productionConfiguration = new WebpackConfigBuilder({
     ecmaVersion: 2025,
     argv: { mode: 'production' },
   });
+  const productionBuild = new WebpackConfigBuilder({
+    ecmaVersion: 2025,
+    env: { WEBPACK_BUILD: true },
+    argv: { mode: 'production' },
+  });
+  const productionServe = new WebpackConfigBuilder({
+    ecmaVersion: 2025,
+    env: { WEBPACK_SERVE: true },
+    argv: { mode: 'production' },
+  });
+  const productionWatch = new WebpackConfigBuilder({
+    ecmaVersion: 2025,
+    env: { WEBPACK_WATCH: true },
+    argv: { mode: 'production' },
+  });
 
-  assert.equal(development.isDevelopmentMode, true);
-  assert.equal(development.isProductionMode, false);
-  assert.equal(none.isDevelopmentMode, false);
-  assert.equal(none.isProductionMode, false);
-  assert.equal(production.isDevelopmentMode, false);
-  assert.equal(production.isProductionMode, true);
+  assert.equal(developmentBuild.isProduction, false);
+  assert.equal(productionConfiguration.isProduction, false);
+  assert.equal(productionBuild.isProduction, true);
+  assert.equal(productionServe.isProduction, false);
+  assert.equal(productionWatch.isProduction, false);
 });
 
 test('enables only the CSS experiment by default', () => {
