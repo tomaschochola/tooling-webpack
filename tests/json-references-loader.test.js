@@ -124,6 +124,8 @@ test('emits configured local JSON references through native Webpack asset module
           { src: 'data:image/svg+xml,%3Csvg%3E%3C/svg%3E' },
           { src: '#embedded-icon' },
         ],
+        scope: './',
+        start_url: './',
       },
       null,
       2,
@@ -135,6 +137,12 @@ test('emits configured local JSON references through native Webpack asset module
       generator: {
         filename: 'manifest.webmanifest',
       },
+      overrides: [
+        {
+          path: ['id'],
+          value: '/application/',
+        },
+      ],
       references: [
         {
           path: ['icons', '*', 'src'],
@@ -158,6 +166,9 @@ test('emits configured local JSON references through native Webpack asset module
   assert.equal(manifest.icons[2].src, 'https://cdn.example.com/icon.svg');
   assert.equal(manifest.icons[3].src, 'data:image/svg+xml,%3Csvg%3E%3C/svg%3E');
   assert.equal(manifest.icons[4].src, '#embedded-icon');
+  assert.equal(manifest.id, '/application/');
+  assert.equal(manifest.scope, './');
+  assert.equal(manifest.start_url, './');
   assert.ok(emittedFiles.some((filename) => /^immutable\.[a-f0-9]+\.webp$/u.test(filename)));
   assert.ok(emittedFiles.some((filename) => /^immutable\.[a-f0-9]+\.svg$/u.test(filename)));
   assert.equal(
@@ -197,6 +208,7 @@ test('inherits the root compiler public path when HTML imports the JSON asset', 
   const manifest = JSON.parse(await readFile(join(outputPath, 'manifest.webmanifest'), 'utf8'));
 
   assert.match(html, /href="\/manifest\.webmanifest"/u);
+  assert.equal(Object.hasOwn(manifest, 'id'), false);
   assert.match(manifest.icons[0].src, /^\/immutable\.[a-f0-9]+\.svg$/u);
 });
 
@@ -291,6 +303,20 @@ test('validates JSON reference configuration before changing the builder', () =>
       }),
     {
       message: 'JSON reference path at index 1 is duplicated.',
+    },
+  );
+  assert.throws(
+    () =>
+      builder.addJsonReferencesLoader({
+        overrides: [
+          { path: ['id'], value: '/' },
+          { path: ['id'], value: '/application/' },
+        ],
+        references: [{ path: ['icon'] }],
+        test: /\.json$/i,
+      }),
+    {
+      message: 'JSON override path at index 1 is duplicated.',
     },
   );
 

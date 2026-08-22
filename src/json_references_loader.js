@@ -52,6 +52,78 @@ export function normalizeJsonReferences(references) {
   });
 }
 
+function normalizeJsonValue(value, name, ancestors = new Set()) {
+  if (value === null || typeof value === 'string' || typeof value === 'boolean') {
+    return value;
+  }
+
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value)) {
+      throw new TypeError(`${name} must contain only JSON-compatible values.`);
+    }
+
+    return value;
+  }
+
+  if (typeof value !== 'object') {
+    throw new TypeError(`${name} must contain only JSON-compatible values.`);
+  }
+
+  if (ancestors.has(value)) {
+    throw new TypeError(`${name} must contain only JSON-compatible values.`);
+  }
+
+  const prototype = Object.getPrototypeOf(value);
+
+  if (!Array.isArray(value) && prototype !== Object.prototype && prototype !== null) {
+    throw new TypeError(`${name} must contain only JSON-compatible values.`);
+  }
+
+  ancestors.add(value);
+
+  const normalized = Array.isArray(value)
+    ? Array.from(value, (item) => normalizeJsonValue(item, name, ancestors))
+    : Object.fromEntries(Object.entries(value).map(([key, item]) => [key, normalizeJsonValue(item, name, ancestors)]));
+
+  ancestors.delete(value);
+
+  return normalized;
+}
+
+export function normalizeJsonOverrides(overrides = []) {
+  if (!Array.isArray(overrides)) {
+    throw new TypeError('JSON overrides must be an array.');
+  }
+
+  const paths = new Set();
+
+  return overrides.map((override, overrideIndex) => {
+    assertPlainObject(override, `JSON override at index ${overrideIndex}`);
+
+    if (!Array.isArray(override.path) || override.path.length === 0 || override.path.some((segment) => typeof segment !== 'string' || segment.length === 0 || segment === '*')) {
+      throw new TypeError(`JSON override path at index ${overrideIndex} must be a non-empty array of non-empty literal strings.`);
+    }
+
+    if (!Object.hasOwn(override, 'value')) {
+      throw new TypeError(`JSON override at index ${overrideIndex} must define a value.`);
+    }
+
+    const path = [...override.path];
+    const pathIdentity = JSON.stringify(path);
+
+    if (paths.has(pathIdentity)) {
+      throw new TypeError(`JSON override path at index ${overrideIndex} is duplicated.`);
+    }
+
+    paths.add(pathIdentity);
+
+    return {
+      path,
+      value: normalizeJsonValue(override.value, `JSON override value at index ${overrideIndex}`),
+    };
+  });
+}
+
 function formatPath(segments) {
   return segments.reduce((path, segment) => (/^(?:0|[1-9]\d*)$/u.test(segment) ? `${path}[${segment}]` : `${path}.${segment}`), '$');
 }
@@ -242,12 +314,44 @@ async function replaceReferences(loaderContext, document, references, referenceQ
   }
 }
 
+function applyOverrides(document, overrides) {
+  for (const { path, value } of overrides) {
+    let container = document;
+
+    for (const [segmentIndex, segment] of path.slice(0, -1).entries()) {
+      if (typeof container !== 'object' || container === null || !Object.hasOwn(container, segment)) {
+        throw new TypeError(`JSON override ${formatPath(path)} cannot traverse ${formatPath(path.slice(0, segmentIndex + 1))}.`);
+      }
+
+      container = container[segment];
+    }
+
+    if (typeof container !== 'object' || container === null) {
+      throw new TypeError(`JSON override ${formatPath(path)} cannot set a value on a non-object container.`);
+    }
+
+    const key = path.at(-1);
+
+    if (Array.isArray(container) && !Object.hasOwn(container, key)) {
+      throw new TypeError(`JSON override ${formatPath(path)} cannot create an array element.`);
+    }
+
+    Object.defineProperty(container, key, {
+      configurable: true,
+      enumerable: true,
+      value,
+      writable: true,
+    });
+  }
+}
+
 export default async function jsonReferencesLoader(source) {
-  const { referenceQueryFlag, references, resolve: resolveOptions = {} } = this.getOptions();
+  const { overrides, referenceQueryFlag, references, resolve: resolveOptions = {} } = this.getOptions();
 
   assertPlainObject(resolveOptions, 'JSON reference resolve option');
 
   const normalizedReferences = normalizeJsonReferences(references);
+  const normalizedOverrides = normalizeJsonOverrides(overrides);
   const sourceText = source.toString();
   const document = JSON.parse(sourceText);
 
@@ -261,6 +365,7 @@ export default async function jsonReferencesLoader(source) {
     preferRelative: true,
   });
 
+  applyOverrides(document, normalizedOverrides);
   await replaceReferences(this, document, normalizedReferences, referenceQueryFlag, resolveReference);
 
   return serializeJson(document, sourceText);

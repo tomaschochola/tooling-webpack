@@ -208,6 +208,9 @@ test('provides generic standard and PWA scaffolds', async () => {
   assert.match(pwaHtml, /href="\.\.\/build\/favicons\/favicon\.svg"/u);
   assert.match(pwaHtml, /type="application\/ld\+json"/u);
   assert.ok(manifest.icons.every(({ src }) => src.startsWith('../build/favicons/')));
+  assert.equal(Object.hasOwn(manifest, 'id'), false);
   assert.equal(manifest.name, 'Application');
+  assert.equal(manifest.scope, './');
+  assert.equal(manifest.start_url, './');
   assert.doesNotMatch(manifestSource, /tomaschochola|tooling-webpack|template-react|template-web-components/u);
 });

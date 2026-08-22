@@ -42,13 +42,12 @@
       "type": "image/png"
     }
   ],
-  "id": "/",
   "lang": "en",
   "name": "Application",
   "orientation": "any",
   "prefer_related_applications": false,
-  "scope": "/",
+  "scope": "./",
   "short_name": "Application",
-  "start_url": "/",
+  "start_url": "./",
   "theme_color": "#ffffff"
 }

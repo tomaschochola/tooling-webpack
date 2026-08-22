@@ -26,7 +26,7 @@ import WorkboxPlugin from 'workbox-webpack-plugin';
 import { constants } from 'zlib';
 
 import { ArchivePlugin } from './archive_plugin.js';
-import { normalizeJsonReferences } from './json_references_loader.js';
+import { normalizeJsonOverrides, normalizeJsonReferences } from './json_references_loader.js';
 import { RobotsPlugin } from './robots_plugin.js';
 import { safeSharpGenerate } from './safe_sharp_generate.js';
 
@@ -626,12 +626,13 @@ export class WebpackConfigBuilder {
     );
   }
 
-  addJsonReferencesLoader({ exclude, generator, include, references, referencedAssetGenerator, resolve: resolveOptions = {}, test } = {}) {
+  addJsonReferencesLoader({ exclude, generator, include, overrides = [], references, referencedAssetGenerator, resolve: resolveOptions = {}, test } = {}) {
     if (test === undefined) {
       throw new TypeError('JSON references loader test is required.');
     }
 
     const normalizedReferences = normalizeJsonReferences(references);
+    const normalizedOverrides = normalizeJsonOverrides(overrides);
 
     if (typeof resolveOptions !== 'object' || resolveOptions === null || Array.isArray(resolveOptions)) {
       throw new TypeError('JSON references loader resolve option must be an object.');
@@ -692,6 +693,7 @@ export class WebpackConfigBuilder {
                 {
                   loader: jsonReferencesLoader,
                   options: {
+                    overrides: normalizedOverrides,
                     referenceQueryFlag,
                     references: normalizedReferences,
                     resolve: { ...resolveOptions },
