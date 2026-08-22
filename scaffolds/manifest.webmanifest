@@ -1,6 +1,5 @@
 {
   "background_color": "#ffffff",
-  "categories": [],
   "description": "Application description.",
   "dir": "ltr",
   "display": "standalone",
@@ -44,8 +43,6 @@
   ],
   "lang": "en",
   "name": "Application",
-  "orientation": "any",
-  "prefer_related_applications": false,
   "scope": "./",
   "short_name": "Application",
   "start_url": "./",
