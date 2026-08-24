@@ -46,11 +46,7 @@ export class RobotsPlugin {
   #metaContent;
   #robotsText;
 
-  constructor({
-    indexable = false,
-    metaContent = indexable ? 'index, follow' : 'noindex, nofollow, nosnippet, noimageindex',
-    robotsText = 'User-agent: *\nAllow: /\n',
-  } = {}) {
+  constructor({ indexable = false, metaContent = indexable ? 'index, follow' : 'noindex, nofollow, nosnippet, noimageindex', robotsText = 'User-agent: *\nAllow: /\n' } = {}) {
     if (typeof indexable !== 'boolean') {
       throw new TypeError('Robots indexability must be a boolean.');
     }

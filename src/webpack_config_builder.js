@@ -1014,9 +1014,7 @@ export class WebpackConfigBuilder {
   }
 
   optimizeAssets({ css = {}, html = {}, image = {}, json = {}, terser = {} } = {}) {
-    return this.#runMethod('optimizeAssets', () =>
-      this.addTerserMinimizer(terser).addCssMinimizer(css).addHtmlMinimizer(html).addJsonMinimizer(json).addImageMinimizer(image),
-    );
+    return this.#runMethod('optimizeAssets', () => this.addTerserMinimizer(terser).addCssMinimizer(css).addHtmlMinimizer(html).addJsonMinimizer(json).addImageMinimizer(image));
   }
 
   addTerserMinimizer(configuration = {}) {

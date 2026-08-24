@@ -68,9 +68,7 @@ export default function (env = {}, argv = {}) {
     });
   }
 
-  tooling = tooling
-    .addRobotsPlugin()
-    .optimizeAssets();
+  tooling = tooling.addRobotsPlugin().optimizeAssets();
 
   if (isProductionBuild) {
     tooling = tooling
