@@ -31,7 +31,9 @@ export default function (env = {}, argv = {}) {
 
   tooling = tooling
     .setDevtool(isProduction ? false : 'source-map')
-    .enableDevServerHistoryApiFallback()
+    .enableDevServerHistoryApiFallback({
+      disableDotRule: true,
+    })
     .optimizeChunks()
     .setEntries({
       index: [...(isProductionBuild ? ['@tomaschochola/tooling-webpack/register-service-worker'] : []), './src/index.ts'],
@@ -77,7 +79,6 @@ export default function (env = {}, argv = {}) {
       .addWorkboxServiceWorkerPlugin({
         clientsClaim: true,
         navigateFallback: 'index.html',
-        navigateFallbackDenylist: [/^\/[^?]*\.[a-z0-9]{1,16}(?:\?[^/]*)?$/i],
         skipWaiting: true,
       })
       .addArchivePlugin();

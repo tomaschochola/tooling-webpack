@@ -96,15 +96,11 @@ test('browser SPA scaffold keeps development and production behavior explicit', 
   assert.equal(development.plugins[1].options.template, './src/index.html');
 
   const workbox = production.plugins.at(-2);
-  const [navigateFallbackDenylist] = workbox.config.navigateFallbackDenylist;
 
   assert.equal(workbox.config.navigateFallback, 'index.html');
+  assert.equal(workbox.config.navigateFallbackDenylist, undefined);
   assert.equal(workbox.config.clientsClaim, true);
   assert.equal(workbox.config.skipWaiting, true);
-  assert.match('/immutable.1234.png', navigateFallbackDenylist);
-  assert.match('/immutable.1234.png?width=640', navigateFallbackDenylist);
-  assert.doesNotMatch('/products/123', navigateFallbackDenylist);
-  assert.doesNotMatch('/products/123?query=document.pdf', navigateFallbackDenylist);
   assert.equal(development.devtool, 'source-map');
   assert.equal(production.devtool, false);
   assert.equal(productionPreview.devtool, false);
@@ -113,9 +109,9 @@ test('browser SPA scaffold keeps development and production behavior explicit', 
   assert.equal(production.output.publicPath, 'https://example.com/');
   assert.equal(productionPreview.output.publicPath, 'https://preview.example.com/');
   assert.equal(productionServe.output.publicPath, '/');
-  assert.deepEqual(development.devServer.historyApiFallback, {});
-  assert.deepEqual(production.devServer.historyApiFallback, {});
-  assert.deepEqual(productionPreview.devServer.historyApiFallback, {});
+  assert.deepEqual(development.devServer.historyApiFallback, { disableDotRule: true });
+  assert.deepEqual(production.devServer.historyApiFallback, { disableDotRule: true });
+  assert.deepEqual(productionPreview.devServer.historyApiFallback, { disableDotRule: true });
 });
 
 test('React SPA scaffold uses a TSX entry', () => {
@@ -133,6 +129,8 @@ test('React SPA scaffold uses a TSX entry', () => {
   assert.deepEqual(productionServe.entry, {
     index: ['./src/index.tsx'],
   });
+  assert.deepEqual(development.devServer.historyApiFallback, { disableDotRule: true });
+  assert.equal(production.plugins.at(-2).config.navigateFallbackDenylist, undefined);
 });
 
 test('browser MPA scaffold emits an HTML document per entry without an SPA fallback', () => {
