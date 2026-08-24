@@ -66,6 +66,7 @@ const methodPolicies = new Map([
   ['addStyleLoaders', { duplicate: 'error' }],
   ['addHtmlLoader', { duplicate: 'error' }],
   ['addJsonReferencesLoader', { duplicate: 'repeat' }],
+  ['addWebManifestLoader', { duplicate: 'error' }],
   ['addCopyPlugin', { duplicate: 'repeat' }],
   ['addPublicCopyPlugin', { duplicate: 'error' }],
   ['addCopyFrom', { duplicate: 'repeat' }],
@@ -772,6 +773,30 @@ export class WebpackConfigBuilder {
     this.#jsonReferencesLoaderIndex += 1;
 
     return result;
+  }
+
+  addWebManifestLoader({
+    generator = {},
+    references = [
+      { path: ['icons', '*', 'src'] },
+      { path: ['screenshots', '*', 'src'], required: false },
+      { path: ['shortcuts', '*', 'icons', '*', 'src'], required: false },
+      { path: ['file_handlers', '*', 'icons', '*', 'src'], required: false },
+    ],
+    test = /\.webmanifest$/i,
+    ...options
+  } = {}) {
+    return this.#runMethod('addWebManifestLoader', () =>
+      this.addJsonReferencesLoader({
+        ...options,
+        generator: {
+          filename: 'manifest.webmanifest',
+          ...generator,
+        },
+        references,
+        test,
+      }),
+    );
   }
 
   addCopyPlugin(patternsOrOptions) {

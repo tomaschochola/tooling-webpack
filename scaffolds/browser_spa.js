@@ -45,18 +45,7 @@ export default function (env = {}, argv = {}) {
         PUBLIC_URL: publicUrl,
       },
     })
-    .addJsonReferencesLoader({
-      generator: {
-        filename: 'manifest.webmanifest',
-      },
-      references: [
-        { path: ['icons', '*', 'src'] },
-        { path: ['screenshots', '*', 'src'], required: false },
-        { path: ['shortcuts', '*', 'icons', '*', 'src'], required: false },
-        { path: ['file_handlers', '*', 'icons', '*', 'src'], required: false },
-      ],
-      test: /\.webmanifest$/i,
-    })
+    .addWebManifestLoader()
     .addAssetQueryRules()
     .addDefinePlugin({
       'process.env.APP_ENV': JSON.stringify(appEnv),

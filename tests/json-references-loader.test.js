@@ -133,29 +133,16 @@ test('emits configured local JSON references through native Webpack asset module
   );
 
   const { outputPath } = await compile(root, 'dist', (builder) =>
-    builder.addImageMinimizer().addJsonReferencesLoader({
-      generator: {
-        filename: 'manifest.webmanifest',
-      },
+    builder.addImageMinimizer().addWebManifestLoader({
       overrides: [
         {
           path: ['id'],
           value: '/application/',
         },
       ],
-      references: [
-        {
-          path: ['icons', '*', 'src'],
-        },
-        {
-          path: ['screenshots', '*', 'src'],
-          required: false,
-        },
-      ],
       resolve: {
         roots: [root],
       },
-      test: /\.webmanifest$/i,
     }),
   );
   const manifest = JSON.parse(await readFile(join(outputPath, 'manifest.webmanifest'), 'utf8'));
