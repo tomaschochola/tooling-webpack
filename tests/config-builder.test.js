@@ -659,7 +659,8 @@ test('configures the canonical browser asset optimizers', () => {
 });
 
 test('precompresses compressible web assets only when compression reduces their size', () => {
-  const config = new WebpackConfigBuilder({ ecmaVersion: 2025 }).addGzipCompressionPlugin().addBrotliCompressionPlugin().toConfig();
+  const builder = new WebpackConfigBuilder({ ecmaVersion: 2025 }).precompressAssets();
+  const config = builder.toConfig();
 
   const [gzip, brotli] = config.plugins;
 
@@ -693,6 +694,10 @@ test('precompresses compressible web assets only when compression reduces their 
       false,
     );
   }
+
+  assert.throws(() => builder.precompressAssets(), {
+    message: 'precompressAssets() cannot be called more than once.',
+  });
 });
 
 test('shares idempotent output query rules across assets and image generators', () => {

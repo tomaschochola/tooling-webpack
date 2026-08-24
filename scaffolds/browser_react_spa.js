@@ -73,8 +73,7 @@ export default function (env = {}, argv = {}) {
 
   if (isProductionBuild) {
     tooling = tooling
-      .addGzipCompressionPlugin()
-      .addBrotliCompressionPlugin()
+      .precompressAssets()
       .addWorkboxServiceWorkerPlugin({
         clientsClaim: true,
         navigateFallback: 'index.html',

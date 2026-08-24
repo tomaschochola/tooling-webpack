@@ -73,6 +73,7 @@ const methodPolicies = new Map([
   ['addHtmlPlugin', { duplicate: 'repeat' }],
   ['addRobotsPlugin', { duplicate: 'error' }],
   ['addArchivePlugin', { duplicate: 'error' }],
+  ['precompressAssets', { duplicate: 'error' }],
   ['addGzipCompressionPlugin', { duplicate: 'error' }],
   ['addBrotliCompressionPlugin', { duplicate: 'error' }],
   ['addEnvironmentPlugin', { duplicate: 'repeat' }],
@@ -865,6 +866,10 @@ export class WebpackConfigBuilder {
       },
       'addArchivePlugin',
     );
+  }
+
+  precompressAssets({ gzip = {}, brotli = {} } = {}) {
+    return this.#runMethod('precompressAssets', () => this.addGzipCompressionPlugin(gzip).addBrotliCompressionPlugin(brotli));
   }
 
   addGzipCompressionPlugin(options = {}) {
