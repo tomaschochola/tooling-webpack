@@ -44,13 +44,11 @@ function applyRobotsMeta(html, content, filename) {
 
 export class RobotsPlugin {
   #metaContent;
-  #robotsFilename;
   #robotsText;
 
   constructor({
     indexable = false,
     metaContent = indexable ? 'index, follow' : 'noindex, nofollow, nosnippet, noimageindex',
-    robotsFilename = 'robots.txt',
     robotsText = 'User-agent: *\nAllow: /\n',
   } = {}) {
     if (typeof indexable !== 'boolean') {
@@ -58,7 +56,6 @@ export class RobotsPlugin {
     }
 
     this.#metaContent = metaContent;
-    this.#robotsFilename = robotsFilename;
     this.#robotsText = robotsText;
   }
 
@@ -83,13 +80,13 @@ export class RobotsPlugin {
 
           const robotsSource = new compiler.webpack.sources.RawSource(this.#robotsText);
 
-          if (compilation.getAsset(this.#robotsFilename) === undefined) {
-            compilation.emitAsset(this.#robotsFilename, robotsSource);
+          if (compilation.getAsset('robots.txt') === undefined) {
+            compilation.emitAsset('robots.txt', robotsSource);
 
             return;
           }
 
-          compilation.updateAsset(this.#robotsFilename, robotsSource);
+          compilation.updateAsset('robots.txt', robotsSource);
         },
       );
     });
