@@ -292,6 +292,7 @@ export class WebpackConfigBuilder {
         },
         hot: false,
         liveReload: true,
+        static: false,
         webSocketServer: 'ws',
       },
       experiments: {

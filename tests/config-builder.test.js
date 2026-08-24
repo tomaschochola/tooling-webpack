@@ -273,6 +273,7 @@ test('uses live reload without hot module replacement for interactive developmen
   assert.equal(config.devServer.host, '0.0.0.0');
   assert.equal(config.devServer.hot, false);
   assert.equal(config.devServer.liveReload, true);
+  assert.equal(config.devServer.static, false);
   assert.equal(config.devServer.webSocketServer, 'ws');
 });
 
