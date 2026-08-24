@@ -56,7 +56,6 @@ export default function (env = {}, argv = {}) {
       },
     })
     .addWebManifestLoader()
-    .addAssetQueryRules()
     .addDefinePlugin({
       'process.env.APP_ENV': JSON.stringify(appEnv),
       'process.env.APP_NAME': JSON.stringify(appName),
