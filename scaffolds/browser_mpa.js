@@ -40,14 +40,12 @@ export default function (env = {}, argv = {}) {
   const appVersion = tooling.appVersion;
   const publicUrl = normalizePublicUrl(env.APP_URL);
 
-  const isProduction = tooling.isProduction;
   const isProductionBuild = tooling.isProductionBuild;
   const isIndexable = isProductionBuild && appIndexable;
 
   tooling = isProductionBuild ? tooling.setPublicUrl(publicUrl) : tooling.setPublicPath('/');
 
   tooling = tooling
-    .setDevtool(isProduction ? false : 'source-map')
     .optimizeChunks()
     .setEntries(Object.fromEntries(pages.map(({ entry, name }) => [name, [...(isProductionBuild ? ['@tomaschochola/tooling-webpack/register-service-worker'] : []), ...entry]])))
     .addBabelLoader()
