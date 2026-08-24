@@ -527,6 +527,26 @@ test('delegates HTML template selection and accepts custom template content', ()
   assert.equal(customConfig.plugins[0].userOptions.templateContent, templateContent);
 });
 
+test('configures the canonical browser source loaders', () => {
+  const builder = new WebpackConfigBuilder({ ecmaVersion: 2025 }).addBrowserLoaders({
+    babel: { cacheDirectory: true },
+    html: { sources: false },
+    styles: {
+      postcss: { execute: true },
+      sass: { api: 'modern-compiler' },
+    },
+  });
+  const [babelRule, styleRule, htmlRule] = builder.toConfig().module.rules;
+
+  assert.equal(babelRule.use[0].options.cacheDirectory, true);
+  assert.deepEqual(styleRule.oneOf[0].use[0].options, { execute: true });
+  assert.deepEqual(styleRule.oneOf[0].use[1].options, { api: 'modern-compiler' });
+  assert.equal(htmlRule.use[0].options.sources, false);
+  assert.throws(() => builder.addBrowserLoaders(), {
+    message: 'addBrowserLoaders() cannot be called more than once.',
+  });
+});
+
 test('extends HTML sources with social images while allowing callers to replace the defaults', () => {
   const defaults = new WebpackConfigBuilder({ ecmaVersion: 2025 }).addHtmlLoader().toConfig();
   const disabled = new WebpackConfigBuilder({ ecmaVersion: 2025 }).addHtmlLoader({ sources: false }).toConfig();

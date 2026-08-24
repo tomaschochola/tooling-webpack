@@ -48,11 +48,11 @@ export default function (env = {}, argv = {}) {
   tooling = tooling
     .optimizeChunks()
     .setEntries(Object.fromEntries(pages.map(({ entry, name }) => [name, [...(isProductionBuild ? ['@tomaschochola/tooling-webpack/register-service-worker'] : []), ...entry]])))
-    .addBabelLoader()
-    .addStyleLoaders()
-    .addHtmlLoader({
-      variables: {
-        PUBLIC_URL: publicUrl,
+    .addBrowserLoaders({
+      html: {
+        variables: {
+          PUBLIC_URL: publicUrl,
+        },
       },
     })
     .addWebManifestLoader()

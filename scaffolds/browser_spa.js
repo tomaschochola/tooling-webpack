@@ -38,11 +38,11 @@ export default function (env = {}, argv = {}) {
     .setEntries({
       index: [...(isProductionBuild ? ['@tomaschochola/tooling-webpack/register-service-worker'] : []), './src/index.ts'],
     })
-    .addBabelLoader()
-    .addStyleLoaders()
-    .addHtmlLoader({
-      variables: {
-        PUBLIC_URL: publicUrl,
+    .addBrowserLoaders({
+      html: {
+        variables: {
+          PUBLIC_URL: publicUrl,
+        },
       },
     })
     .addWebManifestLoader()

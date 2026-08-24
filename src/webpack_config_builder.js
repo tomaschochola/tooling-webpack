@@ -65,6 +65,7 @@ const methodPolicies = new Map([
   ['addBabelLoader', { duplicate: 'error' }],
   ['addStyleLoaders', { duplicate: 'error' }],
   ['addHtmlLoader', { duplicate: 'error' }],
+  ['addBrowserLoaders', { duplicate: 'error' }],
   ['addJsonReferencesLoader', { duplicate: 'repeat' }],
   ['addWebManifestLoader', { duplicate: 'error' }],
   ['addCopyPlugin', { duplicate: 'repeat' }],
@@ -592,13 +593,15 @@ export class WebpackConfigBuilder {
     );
   }
 
-  addStyleLoaders() {
+  addStyleLoaders({ postcss = {}, sass = {} } = {}) {
     const loaders = [
       {
         loader: postcssLoader,
+        options: postcss,
       },
       {
         loader: sassLoader,
+        options: sass,
       },
     ];
 
@@ -687,6 +690,10 @@ export class WebpackConfigBuilder {
       },
       'addHtmlLoader',
     );
+  }
+
+  addBrowserLoaders({ babel = {}, html = {}, styles = {} } = {}) {
+    return this.#runMethod('addBrowserLoaders', () => this.addBabelLoader(babel).addStyleLoaders(styles).addHtmlLoader(html));
   }
 
   addJsonReferencesLoader({ exclude, generator, include, overrides = [], references, referencedAssetGenerator, resolve: resolveOptions = {}, test } = {}) {
