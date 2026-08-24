@@ -379,10 +379,24 @@ export class WebpackConfigBuilder {
       }
     }
 
-    const result = callback();
-    this.#appliedMethods.add(operation);
+    const previousAppliedMethods = new Set(this.#appliedMethods);
+    const previousConfig = this.#config;
+    const previousJsonReferencesLoaderIndex = this.#jsonReferencesLoaderIndex;
+    const previousServiceWorkerRetirement = this.#serviceWorkerRetirement;
 
-    return result;
+    try {
+      const result = callback();
+      this.#appliedMethods.add(operation);
+
+      return result;
+    } catch (error) {
+      this.#appliedMethods = previousAppliedMethods;
+      this.#config = previousConfig;
+      this.#jsonReferencesLoaderIndex = previousJsonReferencesLoaderIndex;
+      this.#serviceWorkerRetirement = previousServiceWorkerRetirement;
+
+      throw error;
+    }
   }
 
   #replaceConfig(config, method) {

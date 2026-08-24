@@ -245,6 +245,17 @@ test('does not register a method whose plugin construction failed', () => {
   assert.doesNotThrow(() => builder.addArchivePlugin());
 });
 
+test('rolls back composite helpers when a delegated method fails', () => {
+  const builder = new WebpackConfigBuilder({ ecmaVersion: 2025 });
+
+  assert.throws(() => builder.addBrowserLoaders({ html: { variables: null } }), {
+    name: 'TypeError',
+  });
+  assert.deepEqual(builder.toConfig().module.rules, []);
+  assert.doesNotThrow(() => builder.addBrowserLoaders());
+  assert.equal(builder.toConfig().module.rules.length, 3);
+});
+
 test('extends the standard Webpack module extensions', () => {
   const config = new WebpackConfigBuilder({ ecmaVersion: 2025 }).toConfig();
 
