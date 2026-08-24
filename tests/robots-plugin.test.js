@@ -92,6 +92,13 @@ async function compile({ html, ...robotsOptions }) {
   };
 }
 
+test('requires boolean indexability', () => {
+  assert.throws(() => new RobotsPlugin({ indexable: 'false' }), {
+    message: 'Robots indexability must be a boolean.',
+    name: 'TypeError',
+  });
+});
+
 test('keeps non-indexable metadata crawlable by default', async () => {
   const output = await compile({
     html: '<!doctype html><html><head><title>Test</title></head><body></body></html>',

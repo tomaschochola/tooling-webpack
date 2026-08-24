@@ -53,6 +53,10 @@ export class RobotsPlugin {
     robotsFilename = 'robots.txt',
     robotsText = 'User-agent: *\nAllow: /\n',
   } = {}) {
+    if (typeof indexable !== 'boolean') {
+      throw new TypeError('Robots indexability must be a boolean.');
+    }
+
     this.#metaContent = metaContent;
     this.#robotsFilename = robotsFilename;
     this.#robotsText = robotsText;
