@@ -80,6 +80,7 @@ const methodPolicies = new Map([
   ['setEntries', { duplicate: 'error' }],
   ['addEntries', { duplicate: 'repeat' }],
   ['optimizeChunks', { duplicate: 'error' }],
+  ['optimizeAssets', { duplicate: 'error' }],
   ['addTerserMinimizer', { duplicate: 'error' }],
   ['addCssMinimizer', { duplicate: 'error' }],
   ['addHtmlMinimizer', { duplicate: 'error' }],
@@ -964,6 +965,12 @@ export class WebpackConfigBuilder {
         },
       },
       'optimizeChunks',
+    );
+  }
+
+  optimizeAssets({ css = {}, html = {}, image = {}, json = {}, terser = {} } = {}) {
+    return this.#runMethod('optimizeAssets', () =>
+      this.addTerserMinimizer(terser).addCssMinimizer(css).addHtmlMinimizer(html).addJsonMinimizer(json).addImageMinimizer(image),
     );
   }
 

@@ -69,11 +69,7 @@ export default function (env = {}, argv = {}) {
     .addRobotsPlugin({
       indexable: isIndexable,
     })
-    .addTerserMinimizer()
-    .addCssMinimizer()
-    .addHtmlMinimizer()
-    .addJsonMinimizer()
-    .addImageMinimizer();
+    .optimizeAssets();
 
   if (isProductionBuild) {
     tooling = tooling

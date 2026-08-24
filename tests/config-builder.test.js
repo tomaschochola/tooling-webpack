@@ -644,6 +644,20 @@ test('passes the constructor ECMAScript version to Terser regardless of per-plug
   assert.equal(config.optimization.minimizer[0].options.minimizer.options.ecma, 2022);
 });
 
+test('configures the canonical browser asset optimizers', () => {
+  const builder = new WebpackConfigBuilder({ ecmaVersion: 2025 }).optimizeAssets();
+  const config = builder.toConfig();
+
+  assert.deepEqual(
+    config.optimization.minimizer.map(({ constructor }) => constructor.name),
+    ['TerserPlugin', 'CssMinimizerPlugin', 'HtmlMinimizerPlugin', 'JsonMinimizerPlugin'],
+  );
+  assert.equal(config.plugins[0].constructor.name, 'ImageMinimizerPlugin');
+  assert.throws(() => builder.optimizeAssets(), {
+    message: 'optimizeAssets() cannot be called more than once.',
+  });
+});
+
 test('precompresses compressible web assets only when compression reduces their size', () => {
   const config = new WebpackConfigBuilder({ ecmaVersion: 2025 }).addGzipCompressionPlugin().addBrotliCompressionPlugin().toConfig();
 
