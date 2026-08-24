@@ -83,13 +83,13 @@ test('browser SPA scaffold keeps development and production behavior explicit', 
   assert.deepEqual(productionServe.entry, {
     index: ['./src/index.ts'],
   });
-  assert.deepEqual(pluginNames(development), ['DefinePlugin', 'HtmlWebpackPlugin', 'ImageMinimizerPlugin']);
-  assert.deepEqual(pluginNames(production), ['DefinePlugin', 'HtmlWebpackPlugin', 'ImageMinimizerPlugin', 'CompressionPlugin', 'CompressionPlugin', 'GenerateSW', 'ArchivePlugin']);
+  assert.deepEqual(pluginNames(development), ['DefinePlugin', 'HtmlWebpackPlugin', 'RobotsPlugin', 'ImageMinimizerPlugin']);
+  assert.deepEqual(pluginNames(production), ['DefinePlugin', 'HtmlWebpackPlugin', 'RobotsPlugin', 'ImageMinimizerPlugin', 'CompressionPlugin', 'CompressionPlugin', 'GenerateSW', 'ArchivePlugin']);
   assert.deepEqual(pluginNames(productionPreview), pluginNames(production));
   assert.deepEqual(pluginNames(productionServe), pluginNames(development));
-  assert.equal(development.plugins[2].options.minimizer, undefined);
-  assert.equal(production.plugins[2].options.minimizer, undefined);
-  assert.equal(productionPreview.plugins[2].options.minimizer, undefined);
+  assert.equal(development.plugins[3].options.minimizer, undefined);
+  assert.equal(production.plugins[3].options.minimizer, undefined);
+  assert.equal(productionPreview.plugins[3].options.minimizer, undefined);
   assert.equal(development.optimization.runtimeChunk, 'single');
   assert.deepEqual(development.optimization.splitChunks, { chunks: 'all' });
 
@@ -152,11 +152,12 @@ test('browser MPA scaffold emits an HTML document per entry without an SPA fallb
     admin: ['./src/admin.ts'],
     index: ['./src/index.ts'],
   });
-  assert.deepEqual(pluginNames(development), ['DefinePlugin', 'HtmlWebpackPlugin', 'HtmlWebpackPlugin', 'ImageMinimizerPlugin']);
+  assert.deepEqual(pluginNames(development), ['DefinePlugin', 'HtmlWebpackPlugin', 'HtmlWebpackPlugin', 'RobotsPlugin', 'ImageMinimizerPlugin']);
   assert.deepEqual(pluginNames(production), [
     'DefinePlugin',
     'HtmlWebpackPlugin',
     'HtmlWebpackPlugin',
+    'RobotsPlugin',
     'ImageMinimizerPlugin',
     'CompressionPlugin',
     'CompressionPlugin',
@@ -187,9 +188,9 @@ test('browser MPA scaffold emits an HTML document per entry without an SPA fallb
       },
     ],
   );
-  assert.equal(development.plugins[3].options.minimizer, undefined);
-  assert.equal(production.plugins[3].options.minimizer, undefined);
-  assert.equal(productionPreview.plugins[3].options.minimizer, undefined);
+  assert.equal(development.plugins[4].options.minimizer, undefined);
+  assert.equal(production.plugins[4].options.minimizer, undefined);
+  assert.equal(productionPreview.plugins[4].options.minimizer, undefined);
   assert.equal(development.output.publicPath, '/');
   assert.equal(production.output.publicPath, 'https://example.com/');
   assert.equal(productionPreview.output.publicPath, 'https://preview.example.com/');

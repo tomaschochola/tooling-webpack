@@ -20,12 +20,14 @@ export default function (env = {}, argv = {}) {
   });
 
   const appEnv = tooling.appEnv;
+  const appIndexable = tooling.appIndexable;
   const appName = tooling.appName;
   const appVersion = tooling.appVersion;
   const publicUrl = normalizePublicUrl(env.APP_URL);
 
   const isProduction = tooling.isProduction;
   const isProductionBuild = tooling.isProductionBuild;
+  const isIndexable = isProductionBuild && appIndexable;
 
   tooling = isProductionBuild ? tooling.setPublicUrl(publicUrl) : tooling.setPublicPath('/');
 
@@ -65,6 +67,9 @@ export default function (env = {}, argv = {}) {
     })
     .addHtmlPlugin({
       template: './src/index.html',
+    })
+    .addRobotsPlugin({
+      indexable: isIndexable,
     })
     .addTerserMinimizer()
     .addCssMinimizer()
