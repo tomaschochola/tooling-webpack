@@ -92,14 +92,14 @@ async function compile({ html, ...robotsOptions }) {
   };
 }
 
-test('injects non-indexable robots metadata and robots.txt by default', async () => {
+test('keeps non-indexable metadata crawlable by default', async () => {
   const output = await compile({
     html: '<!doctype html><html><head><title>Test</title></head><body></body></html>',
     indexable: false,
   });
 
-  assert.match(output.html, /<meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex" \/>/);
-  assert.equal(output.robots, 'User-agent: *\nDisallow: /\n');
+  assert.match(output.html, /<meta name="robots" content="noindex, nofollow, nosnippet, noimageindex" \/>/);
+  assert.equal(output.robots, 'User-agent: *\nAllow: /\n');
 });
 
 test('updates existing robots metadata without leaving duplicates', async () => {

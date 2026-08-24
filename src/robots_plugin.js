@@ -49,9 +49,9 @@ export class RobotsPlugin {
 
   constructor({
     indexable = false,
-    metaContent = indexable ? 'index, follow' : 'noindex, nofollow, noarchive, nosnippet, noimageindex',
+    metaContent = indexable ? 'index, follow' : 'noindex, nofollow, nosnippet, noimageindex',
     robotsFilename = 'robots.txt',
-    robotsText = indexable ? 'User-agent: *\nAllow: /\n' : 'User-agent: *\nDisallow: /\n',
+    robotsText = 'User-agent: *\nAllow: /\n',
   } = {}) {
     this.#metaContent = metaContent;
     this.#robotsFilename = robotsFilename;
