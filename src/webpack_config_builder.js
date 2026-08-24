@@ -880,11 +880,19 @@ export class WebpackConfigBuilder {
     );
   }
 
-  addRobotsPlugin(options = {}) {
+  addRobotsPlugin({ indexable, ...options } = {}) {
+    const resolvedIndexable = indexable === undefined ? this.isProductionBuild && this.appIndexable : indexable;
+
     return this.#replaceConfig(
       {
         ...this.#config,
-        plugins: [...this.#config.plugins, new RobotsPlugin(options)],
+        plugins: [
+          ...this.#config.plugins,
+          new RobotsPlugin({
+            ...options,
+            indexable: resolvedIndexable,
+          }),
+        ],
       },
       'addRobotsPlugin',
     );
