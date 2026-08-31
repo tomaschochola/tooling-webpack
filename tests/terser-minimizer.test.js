@@ -16,56 +16,56 @@ import { test } from 'node:test';
 import { WebpackConfigBuilder } from '../src/index.js';
 
 function createTerserPlugin(options, ecmaVersion = 2025) {
-  const config = new WebpackConfigBuilder({ ecmaVersion }).addTerserMinimizer(options).toConfig();
+    const config = new WebpackConfigBuilder({ ecmaVersion }).addTerserMinimizer(options).toConfig();
 
-  return config.optimization.minimizer[0];
+    return config.optimization.minimizer[0];
 }
 
 test('uses the required ECMAScript output version', () => {
-  const plugin = createTerserPlugin();
+    const plugin = createTerserPlugin();
 
-  assert.deepEqual(plugin.options.minimizer.options, {
-    ecma: 2025,
-    compress: {
-      drop_console: true,
-      drop_debugger: true,
-      passes: 5,
-    },
-    format: {
-      comments: false,
-    },
-  });
+    assert.deepEqual(plugin.options.minimizer.options, {
+        ecma: 2025,
+        compress: {
+            drop_console: true,
+            drop_debugger: true,
+            passes: 5,
+        },
+        format: {
+            comments: false,
+        },
+    });
 });
 
 test('merges custom minimizer options with the production defaults', () => {
-  const plugin = createTerserPlugin(
-    {
-      extractComments: true,
-      minimizerOptions: {
-        ecma: 2015,
+    const plugin = createTerserPlugin(
+        {
+            extractComments: true,
+            minimizerOptions: {
+                ecma: 2015,
+                compress: {
+                    drop_console: false,
+                    passes: 2,
+                },
+                format: {
+                    ascii_only: true,
+                },
+            },
+        },
+        2024,
+    );
+
+    assert.equal(plugin.options.extractComments, true);
+    assert.deepEqual(plugin.options.minimizer.options, {
+        ecma: 2024,
         compress: {
-          drop_console: false,
-          passes: 2,
+            drop_console: false,
+            drop_debugger: true,
+            passes: 2,
         },
         format: {
-          ascii_only: true,
+            ascii_only: true,
+            comments: false,
         },
-      },
-    },
-    2024,
-  );
-
-  assert.equal(plugin.options.extractComments, true);
-  assert.deepEqual(plugin.options.minimizer.options, {
-    ecma: 2024,
-    compress: {
-      drop_console: false,
-      drop_debugger: true,
-      passes: 2,
-    },
-    format: {
-      ascii_only: true,
-      comments: false,
-    },
-  });
+    });
 });

@@ -1,45 +1,45 @@
 {
-  "background_color": "#ffffff",
-  "description": "Application description.",
-  "display": "standalone",
-  "icons": [
-    {
-      "sizes": "192x192",
-      "src": "../build/favicons/icon-192x192.png",
-      "type": "image/png"
-    },
-    {
-      "sizes": "384x384",
-      "src": "../build/favicons/icon-384x384.png",
-      "type": "image/png"
-    },
-    {
-      "sizes": "512x512",
-      "src": "../build/favicons/icon-512x512.png",
-      "type": "image/png"
-    },
-    {
-      "sizes": "1024x1024",
-      "src": "../build/favicons/icon-1024x1024.png",
-      "type": "image/png"
-    },
-    {
-      "purpose": "maskable",
-      "sizes": "512x512",
-      "src": "../build/favicons/maskable-icon-512x512.png",
-      "type": "image/png"
-    },
-    {
-      "purpose": "maskable",
-      "sizes": "1024x1024",
-      "src": "../build/favicons/maskable-icon-1024x1024.png",
-      "type": "image/png"
-    }
-  ],
-  "lang": "en",
-  "name": "Application",
-  "scope": "./",
-  "short_name": "Application",
-  "start_url": "./",
-  "theme_color": "#ffffff"
+    "background_color": "#ffffff",
+    "description": "Application description.",
+    "display": "standalone",
+    "icons": [
+        {
+            "sizes": "192x192",
+            "src": "../build/favicons/icon-192x192.png",
+            "type": "image/png"
+        },
+        {
+            "sizes": "384x384",
+            "src": "../build/favicons/icon-384x384.png",
+            "type": "image/png"
+        },
+        {
+            "sizes": "512x512",
+            "src": "../build/favicons/icon-512x512.png",
+            "type": "image/png"
+        },
+        {
+            "sizes": "1024x1024",
+            "src": "../build/favicons/icon-1024x1024.png",
+            "type": "image/png"
+        },
+        {
+            "purpose": "maskable",
+            "sizes": "512x512",
+            "src": "../build/favicons/maskable-icon-512x512.png",
+            "type": "image/png"
+        },
+        {
+            "purpose": "maskable",
+            "sizes": "1024x1024",
+            "src": "../build/favicons/maskable-icon-1024x1024.png",
+            "type": "image/png"
+        }
+    ],
+    "lang": "en",
+    "name": "Application",
+    "scope": "./",
+    "short_name": "Application",
+    "start_url": "./",
+    "theme_color": "#ffffff"
 }

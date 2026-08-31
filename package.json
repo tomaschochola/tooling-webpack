@@ -1,95 +1,95 @@
 {
-  "author": {
-    "email": "tomaschochola@tomaschochola.cz",
-    "name": "Tomáš Chochola",
-    "url": "https://github.com/tomaschochola"
-  },
-  "bugs": {
-    "email": "tomaschochola@tomaschochola.cz",
-    "url": "https://github.com/tomaschochola/tooling-webpack/issues"
-  },
-  "contributors": [
-    {
-      "email": "tomaschochola@tomaschochola.cz",
-      "name": "Tomáš Chochola",
-      "url": "https://github.com/tomaschochola"
-    }
-  ],
-  "dependencies": {
-    "archiver": "^8.0.0",
-    "babel-loader": "^10.1.1",
-    "compression-webpack-plugin": "^12.0.0",
-    "copy-webpack-plugin": "^14.0.0",
-    "css-minimizer-webpack-plugin": "^8.0.0",
-    "html-loader": "^5.1.0",
-    "html-minimizer-webpack-plugin": "^6.0.0",
-    "html-webpack-plugin": "^5.6.8",
-    "image-minimizer-webpack-plugin": "^5.0.0",
-    "json-minimizer-webpack-plugin": "^5.0.1",
-    "postcss-loader": "^8.2.1",
-    "sass-embedded": "^1.100.0",
-    "sass-loader": "^17.0.0",
-    "sharp": "^0.35.3",
-    "svgo": "^4.0.2",
-    "terser-webpack-plugin": "^5.6.1",
-    "webpack": "^5.109.2",
-    "webpack-cli": "^7.2.2",
-    "webpack-dev-server": "^6.0.0",
-    "workbox-webpack-plugin": "^7.4.1"
-  },
-  "description": "Composable Webpack configuration builder for modern TypeScript web applications.",
-  "devDependencies": {
-    "@tomaschochola/tooling-eslint": "github:tomaschochola/tooling-eslint#main",
-    "@tomaschochola/tooling-prettier": "github:tomaschochola/tooling-prettier#main",
-    "@tomaschochola/tooling-trimmer": "github:tomaschochola/tooling-trimmer#main"
-  },
-  "engines": {
-    "node": ">=22.15.0"
-  },
-  "exports": {
-    ".": "./src/index.js",
-    "./modules": {
-      "types": "./types/modules.d.ts"
+    "author": {
+        "email": "tomaschochola@tomaschochola.cz",
+        "name": "Tomáš Chochola",
+        "url": "https://github.com/tomaschochola"
     },
-    "./register-service-worker": "./src/register_service_worker.js",
-    "./service-worker-registration": {
-      "types": "./types/service_worker_registration.d.ts",
-      "default": "./src/service_worker_registration.js"
-    }
-  },
-  "files": [
-    "scaffolds",
-    "src",
-    "types"
-  ],
-  "funding": {
-    "type": "github",
-    "url": "https://github.com/sponsors/tomaschochola"
-  },
-  "homepage": "https://github.com/tomaschochola/tooling-webpack",
-  "keywords": [
-    "tomaschochola",
-    "TomasChochola",
-    "Tomas Chochola",
-    "Tomáš Chochola",
-    "bundler",
-    "configuration",
-    "javascript",
-    "tooling-webpack",
-    "typescript",
-    "webpack"
-  ],
-  "license": "CC-BY-ND-4.0",
-  "main": "./src/index.js",
-  "name": "@tomaschochola/tooling-webpack",
-  "peerDependencies": {
-    "@babel/core": "^8.0.1"
-  },
-  "private": true,
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/tomaschochola/tooling-webpack.git"
-  },
-  "type": "module",
-  "version": "0.0.0"
+    "bugs": {
+        "email": "tomaschochola@tomaschochola.cz",
+        "url": "https://github.com/tomaschochola/tooling-webpack/issues"
+    },
+    "contributors": [
+        {
+            "email": "tomaschochola@tomaschochola.cz",
+            "name": "Tomáš Chochola",
+            "url": "https://github.com/tomaschochola"
+        }
+    ],
+    "dependencies": {
+        "archiver": "^8.0.0",
+        "babel-loader": "^10.1.1",
+        "compression-webpack-plugin": "^12.0.0",
+        "copy-webpack-plugin": "^14.0.0",
+        "css-minimizer-webpack-plugin": "^8.0.0",
+        "html-loader": "^5.1.0",
+        "html-minimizer-webpack-plugin": "^6.0.0",
+        "html-webpack-plugin": "^5.6.8",
+        "image-minimizer-webpack-plugin": "^5.0.0",
+        "json-minimizer-webpack-plugin": "^5.0.1",
+        "postcss-loader": "^8.2.1",
+        "sass-embedded": "^1.100.0",
+        "sass-loader": "^17.0.0",
+        "sharp": "^0.35.3",
+        "svgo": "^4.0.2",
+        "terser-webpack-plugin": "^5.6.1",
+        "webpack": "^5.109.2",
+        "webpack-cli": "^7.2.2",
+        "webpack-dev-server": "^6.0.0",
+        "workbox-webpack-plugin": "^7.4.1"
+    },
+    "description": "Composable Webpack configuration builder for modern TypeScript web applications.",
+    "devDependencies": {
+        "@tomaschochola/tooling-eslint": "git+https://github.com/tomaschochola/tooling-eslint.git#main",
+        "@tomaschochola/tooling-prettier": "git+https://github.com/tomaschochola/tooling-prettier.git#main",
+        "@tomaschochola/tooling-trimmer": "git+https://github.com/tomaschochola/tooling-trimmer.git#main"
+    },
+    "engines": {
+        "node": ">=22.15.0"
+    },
+    "exports": {
+        ".": "./src/index.js",
+        "./modules": {
+            "types": "./types/modules.d.ts"
+        },
+        "./register-service-worker": "./src/register_service_worker.js",
+        "./service-worker-registration": {
+            "types": "./types/service_worker_registration.d.ts",
+            "default": "./src/service_worker_registration.js"
+        }
+    },
+    "files": [
+        "scaffolds",
+        "src",
+        "types"
+    ],
+    "funding": {
+        "type": "github",
+        "url": "https://github.com/sponsors/tomaschochola"
+    },
+    "homepage": "https://github.com/tomaschochola/tooling-webpack",
+    "keywords": [
+        "tomaschochola",
+        "TomasChochola",
+        "Tomas Chochola",
+        "Tomáš Chochola",
+        "bundler",
+        "configuration",
+        "javascript",
+        "tooling-webpack",
+        "typescript",
+        "webpack"
+    ],
+    "license": "CC-BY-ND-4.0",
+    "main": "./src/index.js",
+    "name": "@tomaschochola/tooling-webpack",
+    "peerDependencies": {
+        "@babel/core": "^8.0.1"
+    },
+    "private": true,
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/tomaschochola/tooling-webpack.git"
+    },
+    "type": "module",
+    "version": "0.0.0"
 }

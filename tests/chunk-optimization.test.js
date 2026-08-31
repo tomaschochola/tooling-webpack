@@ -20,113 +20,113 @@ import webpack from 'webpack';
 import { WebpackConfigBuilder } from '../src/index.js';
 
 test('shares initial modules and injects only each page dependency graph', async (context) => {
-  const root = await mkdtemp(join(tmpdir(), 'tooling-webpack-chunks-'));
-  const outputPath = join(root, 'dist');
+    const root = await mkdtemp(join(tmpdir(), 'tooling-webpack-chunks-'));
+    const outputPath = join(root, 'dist');
 
-  context.after(async () => {
-    await rm(root, {
-      force: true,
-      recursive: true,
+    context.after(async () => {
+        await rm(root, {
+            force: true,
+            recursive: true,
+        });
     });
-  });
 
-  const sharedValue = Array.from({ length: 4_000 }, (_, index) => `shared-value-${index}`).join('|');
+    const sharedValue = Array.from({ length: 4_000 }, (_, index) => `shared-value-${index}`).join('|');
 
-  await writeFile(join(root, 'shared.js'), `export const sharedValue = ${JSON.stringify(sharedValue)};\n`);
-  await writeFile(join(root, 'index.js'), "import { sharedValue } from './shared.js'; globalThis.indexValue = sharedValue.length;\n");
-  await writeFile(join(root, 'admin.js'), "import { sharedValue } from './shared.js'; globalThis.adminValue = sharedValue.length;\n");
+    await writeFile(join(root, 'shared.js'), `export const sharedValue = ${JSON.stringify(sharedValue)};\n`);
+    await writeFile(join(root, 'index.js'), "import { sharedValue } from './shared.js'; globalThis.indexValue = sharedValue.length;\n");
+    await writeFile(join(root, 'admin.js'), "import { sharedValue } from './shared.js'; globalThis.adminValue = sharedValue.length;\n");
 
-  const config = new WebpackConfigBuilder({ ecmaVersion: 2025, argv: { mode: 'production' } })
-    .setContext(root)
-    .setTarget('web')
-    .setOutputPath(outputPath)
-    .optimizeChunks()
-    .setEntries({
-      admin: './admin.js',
-      index: './index.js',
-    })
-    .addHtmlPlugin({
-      chunks: ['index'],
-      filename: 'index.html',
-      templateContent: '<!doctype html><html><head><title>Index</title></head><body></body></html>',
-    })
-    .addHtmlPlugin({
-      chunks: ['admin'],
-      filename: 'admin/index.html',
-      templateContent: '<!doctype html><html><head><title>Admin</title></head><body></body></html>',
-    })
-    .toConfig();
-  const compiler = webpack(config);
+    const config = new WebpackConfigBuilder({ ecmaVersion: 2025, argv: { mode: 'production' } })
+        .setContext(root)
+        .setTarget('web')
+        .setOutputPath(outputPath)
+        .optimizeChunks()
+        .setEntries({
+            admin: './admin.js',
+            index: './index.js',
+        })
+        .addHtmlPlugin({
+            chunks: ['index'],
+            filename: 'index.html',
+            templateContent: '<!doctype html><html><head><title>Index</title></head><body></body></html>',
+        })
+        .addHtmlPlugin({
+            chunks: ['admin'],
+            filename: 'admin/index.html',
+            templateContent: '<!doctype html><html><head><title>Admin</title></head><body></body></html>',
+        })
+        .toConfig();
+    const compiler = webpack(config);
 
-  let statistics;
+    let statistics;
 
-  try {
-    statistics = await new Promise((resolvePromise, rejectPromise) => {
-      compiler.run((error, result) => {
-        if (error !== null && error !== undefined) {
-          rejectPromise(error);
+    try {
+        statistics = await new Promise((resolvePromise, rejectPromise) => {
+            compiler.run((error, result) => {
+                if (error !== null && error !== undefined) {
+                    rejectPromise(error);
 
-          return;
-        }
+                    return;
+                }
 
-        resolvePromise(result);
-      });
+                resolvePromise(result);
+            });
+        });
+    } finally {
+        await new Promise((resolvePromise, rejectPromise) => {
+            compiler.close((error) => {
+                if (error !== null && error !== undefined) {
+                    rejectPromise(error);
+
+                    return;
+                }
+
+                resolvePromise();
+            });
+        });
+    }
+
+    assert.equal(
+        statistics?.hasErrors(),
+        false,
+        statistics?.toString({
+            all: false,
+            errorDetails: true,
+            errors: true,
+        }),
+    );
+
+    const { entrypoints } = statistics.toJson({
+        all: false,
+        entrypoints: true,
     });
-  } finally {
-    await new Promise((resolvePromise, rejectPromise) => {
-      compiler.close((error) => {
-        if (error !== null && error !== undefined) {
-          rejectPromise(error);
+    const indexAssets = new Set(entrypoints.index.assets.map(({ name }) => name).filter((name) => name.endsWith('.js')));
+    const adminAssets = new Set(entrypoints.admin.assets.map(({ name }) => name).filter((name) => name.endsWith('.js')));
+    const sharedAssets = indexAssets.intersection(adminAssets);
+    const indexOnlyAssets = indexAssets.difference(adminAssets);
+    const adminOnlyAssets = adminAssets.difference(indexAssets);
 
-          return;
-        }
+    assert.equal(indexAssets.size, 3);
+    assert.equal(adminAssets.size, 3);
+    assert.equal(sharedAssets.size, 2);
+    assert.equal(indexOnlyAssets.size, 1);
+    assert.equal(adminOnlyAssets.size, 1);
 
-        resolvePromise();
-      });
-    });
-  }
+    const indexHtml = await readFile(join(outputPath, 'index.html'), 'utf8');
+    const adminHtml = await readFile(join(outputPath, 'admin/index.html'), 'utf8');
 
-  assert.equal(
-    statistics?.hasErrors(),
-    false,
-    statistics?.toString({
-      all: false,
-      errorDetails: true,
-      errors: true,
-    }),
-  );
+    for (const asset of sharedAssets) {
+        assert.equal(indexHtml.includes(asset), true);
+        assert.equal(adminHtml.includes(asset), true);
+    }
 
-  const { entrypoints } = statistics.toJson({
-    all: false,
-    entrypoints: true,
-  });
-  const indexAssets = new Set(entrypoints.index.assets.map(({ name }) => name).filter((name) => name.endsWith('.js')));
-  const adminAssets = new Set(entrypoints.admin.assets.map(({ name }) => name).filter((name) => name.endsWith('.js')));
-  const sharedAssets = indexAssets.intersection(adminAssets);
-  const indexOnlyAssets = indexAssets.difference(adminAssets);
-  const adminOnlyAssets = adminAssets.difference(indexAssets);
+    for (const asset of indexOnlyAssets) {
+        assert.equal(indexHtml.includes(asset), true);
+        assert.equal(adminHtml.includes(asset), false);
+    }
 
-  assert.equal(indexAssets.size, 3);
-  assert.equal(adminAssets.size, 3);
-  assert.equal(sharedAssets.size, 2);
-  assert.equal(indexOnlyAssets.size, 1);
-  assert.equal(adminOnlyAssets.size, 1);
-
-  const indexHtml = await readFile(join(outputPath, 'index.html'), 'utf8');
-  const adminHtml = await readFile(join(outputPath, 'admin/index.html'), 'utf8');
-
-  for (const asset of sharedAssets) {
-    assert.equal(indexHtml.includes(asset), true);
-    assert.equal(adminHtml.includes(asset), true);
-  }
-
-  for (const asset of indexOnlyAssets) {
-    assert.equal(indexHtml.includes(asset), true);
-    assert.equal(adminHtml.includes(asset), false);
-  }
-
-  for (const asset of adminOnlyAssets) {
-    assert.equal(adminHtml.includes(asset), true);
-    assert.equal(indexHtml.includes(asset), false);
-  }
+    for (const asset of adminOnlyAssets) {
+        assert.equal(adminHtml.includes(asset), true);
+        assert.equal(indexHtml.includes(asset), false);
+    }
 });
