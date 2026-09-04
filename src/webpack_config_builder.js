@@ -279,7 +279,7 @@ export class WebpackConfigBuilder {
                 filename: 'immutable.[contenthash].js',
                 chunkFilename: 'immutable.[contenthash].js',
                 assetModuleFilename: 'immutable.[contenthash][ext][query][fragment]',
-                clean: true,
+                clean: this.isProduction,
                 path: resolve('build', assertWebpackMode(this.webpackMode), assertOutputPathSegment(this.appEnv, 'Application environment')),
                 publicPath: 'auto',
             },
