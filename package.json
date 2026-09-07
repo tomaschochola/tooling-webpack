@@ -41,7 +41,8 @@
     "devDependencies": {
         "@tomaschochola/tooling-eslint": "git+https://github.com/tomaschochola/tooling-eslint.git#main",
         "@tomaschochola/tooling-prettier": "git+https://github.com/tomaschochola/tooling-prettier.git#main",
-        "@tomaschochola/tooling-trimmer": "git+https://github.com/tomaschochola/tooling-trimmer.git#main"
+        "@tomaschochola/tooling-trimmer": "git+https://github.com/tomaschochola/tooling-trimmer.git#main",
+        "@tomaschochola/tooling-typescript": "git+https://github.com/tomaschochola/tooling-typescript.git#main"
     },
     "engines": {
         "node": ">=22.15.0"

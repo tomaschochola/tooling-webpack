@@ -43,7 +43,7 @@ doctor: git_check npm_config_check npm_doctor
 lint: eslint_check prettier_check trimmer_check
 
 .PHONY: analyze
-analyze: npm_check
+analyze: npm_check tsc_check
 
 .PHONY: test
 test: node_test
@@ -118,6 +118,10 @@ prettier_check: ./node_modules/.package-lock.json ./package.json ./package-lock.
 .PHONY: node_test
 node_test: ./node_modules/.package-lock.json ./package.json ./package-lock.json
 	node --test --experimental-test-coverage --test-coverage-include='src/**/*.js' --test-coverage-lines=90 --test-coverage-branches=80 --test-coverage-functions=90
+
+.PHONY: tsc_check
+tsc_check: ./node_modules/.package-lock.json ./package.json ./package-lock.json ./tsconfig.json
+	npm exec --no --ignore-scripts -- tsc --noEmit --project ./tsconfig.json
 
 .PHONY: npm_config_check
 npm_config_check: ./.npmrc

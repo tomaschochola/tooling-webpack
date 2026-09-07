@@ -1,0 +1,4 @@
+{
+    "extends": "@tomaschochola/tooling-typescript/src/browser_bundler.json",
+    "include": ["./types/**/*.d.ts", "./tests/declarations.ts"]
+}
