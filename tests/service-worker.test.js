@@ -94,6 +94,7 @@ function installBrowserRegistrationHarness(context, controller) {
         calls,
         documentListeners,
         registration,
+        serviceWorker,
         serviceWorkerListeners,
         windowListeners,
     };
@@ -146,7 +147,7 @@ test('registers and updates a service worker through the native browser API', as
         scriptURL: '/sw.js',
     });
 
-    assert.equal(await registerServiceWorker({ minimumUpdateIntervalMilliseconds: 0 }), harness.registration);
+    assert.equal(await registerServiceWorker({ minimumUpdateIntervalMilliseconds: 0, reloadOnUpdate: true }), harness.registration);
     assert.deepEqual(harness.calls.register, [['/sw.js', { updateViaCache: 'none' }]]);
 
     harness.windowListeners.get('focus')();
@@ -162,7 +163,40 @@ test('registers and updates a service worker through the native browser API', as
 test('does not reload the page when the first service worker takes control', async (context) => {
     const harness = installBrowserRegistrationHarness(context, null);
 
+    await registerServiceWorker({ reloadOnUpdate: true });
+    harness.serviceWorker.controller = {
+        scriptURL: '/sw.js',
+    };
+    harness.serviceWorkerListeners.get('controllerchange')();
+
+    assert.equal(harness.calls.reload, 0);
+});
+
+test('reloads an initially uncontrolled page when a later service worker takes control', async (context) => {
+    const harness = installBrowserRegistrationHarness(context, null);
+
+    await registerServiceWorker({ reloadOnUpdate: true });
+    harness.serviceWorker.controller = {
+        scriptURL: '/sw.js',
+    };
+    harness.serviceWorkerListeners.get('controllerchange')();
+    harness.serviceWorker.controller = {
+        scriptURL: '/sw.js',
+    };
+    harness.serviceWorkerListeners.get('controllerchange')();
+
+    assert.equal(harness.calls.reload, 1);
+});
+
+test('does not reload on service worker updates by default', async (context) => {
+    const harness = installBrowserRegistrationHarness(context, {
+        scriptURL: '/sw.js',
+    });
+
     await registerServiceWorker();
+    harness.serviceWorker.controller = {
+        scriptURL: '/sw.js',
+    };
     harness.serviceWorkerListeners.get('controllerchange')();
 
     assert.equal(harness.calls.reload, 0);
@@ -187,6 +221,7 @@ test('resolves the service worker script from root and subpath Webpack public pa
 test('browser service worker registration entry bundles independently', async (context) => {
     const root = await mkdtemp(join(tmpdir(), 'tooling-webpack-registration-'));
     const outputPath = join(root, 'dist');
+    const immediateOutputPath = join(root, 'dist-immediate');
 
     context.after(async () => {
         await rm(root, {
@@ -221,6 +256,7 @@ test('browser service worker registration entry bundles independently', async (c
 
     assert.equal(statistics.hasErrors(), false, statistics.toString({ all: false, errorDetails: true, errors: true }));
     assert.equal(packageJson.exports['./register-service-worker'], './src/register_service_worker.js');
+    assert.equal(packageJson.exports['./register-service-worker-immediate'], './src/register_service_worker_immediate.js');
 
     const bundleFilename = statistics.toJson({ all: false, assets: true }).assets.find(({ name }) => name.endsWith('.js')).name;
     const bundle = await readFile(join(outputPath, bundleFilename), 'utf8');
@@ -230,6 +266,36 @@ test('browser service worker registration entry bundles independently', async (c
     assert.match(bundle, /https:\/\/cdn\.example\.com\/application\//u);
     assert.doesNotMatch(bundle, /workbox-window|class Workbox/u);
     assert.doesNotMatch(bundle, /registration\.unregister/u);
+
+    const immediateBuilder = new WebpackConfigBuilder({
+        ecmaVersion: 2025,
+        argv: { mode: 'production' },
+    })
+        .setEntries({
+            index: ['@tomaschochola/tooling-webpack/register-service-worker-immediate'],
+        })
+        .setOutputPath(immediateOutputPath)
+        .addBabelLoader();
+    const immediateBase = immediateBuilder.toConfig();
+    const immediateStatistics = await compile({
+        ...immediateBase,
+        context: process.cwd(),
+        devtool: false,
+        mode: 'production',
+        output: {
+            ...immediateBase.output,
+            path: immediateOutputPath,
+            publicPath: 'https://cdn.example.com/application/',
+        },
+        target: 'web',
+    });
+
+    assert.equal(immediateStatistics.hasErrors(), false, immediateStatistics.toString({ all: false, errorDetails: true, errors: true }));
+
+    const immediateBundleFilename = immediateStatistics.toJson({ all: false, assets: true }).assets.find(({ name }) => name.endsWith('.js')).name;
+    const immediateBundle = await readFile(join(immediateOutputPath, immediateBundleFilename), 'utf8');
+
+    assert.match(immediateBundle, /reloadOnUpdate/u);
 });
 
 test('retirement builder emits only the standalone worker at the stable sw.js path', async (context) => {
@@ -268,7 +334,11 @@ test('retirement builder emits only the standalone worker at the stable sw.js pa
     });
 
     assert.equal(statistics.hasErrors(), false, statistics.toString({ all: false, errorDetails: true, errors: true }));
-    assert.equal(await readFile(join(outputPath, 'sw.js'), 'utf8'), await readFile(new URL('../src/service_worker_retirement.js', import.meta.url), 'utf8'));
+    const retirementWorker = await readFile(join(outputPath, 'sw.js'), 'utf8');
+
+    assert.match(retirementWorker, /caches/u);
+    assert.match(retirementWorker, /unregister/u);
+    assert.match(retirementWorker, /skipWaiting/u);
 
     const bundleFilename = statistics.toJson({ all: false, assets: true }).assets.find(({ name }) => name.endsWith('.js') && name !== 'sw.js').name;
     const bundle = await readFile(join(outputPath, bundleFilename), 'utf8');

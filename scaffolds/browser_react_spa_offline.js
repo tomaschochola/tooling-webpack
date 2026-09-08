@@ -34,7 +34,7 @@ export default function (env = {}, argv = {}) {
         })
         .optimizeChunks()
         .setEntries({
-            index: ['./src/index.ts'],
+            index: [...(isProductionBuild ? ['@tomaschochola/tooling-webpack/register-service-worker'] : []), './src/index.tsx'],
         })
         .addBrowserLoaders({
             html: {
@@ -43,6 +43,7 @@ export default function (env = {}, argv = {}) {
                 },
             },
         })
+        .addWebManifestLoader()
         .addDefinePlugin({
             'process.env.APP_ENV': JSON.stringify(appEnv),
             'process.env.APP_NAME': JSON.stringify(appName),
@@ -55,7 +56,12 @@ export default function (env = {}, argv = {}) {
         .optimizeAssets();
 
     if (isProductionBuild) {
-        tooling = tooling.precompressAssets().addArchivePlugin();
+        tooling = tooling
+            .precompressAssets()
+            .addWorkboxServiceWorkerPlugin({
+                navigateFallback: 'index.html',
+            })
+            .addArchivePlugin();
     }
 
     return tooling.toConfig();

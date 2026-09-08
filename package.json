@@ -53,6 +53,7 @@
             "types": "./types/modules.d.ts"
         },
         "./register-service-worker": "./src/register_service_worker.js",
+        "./register-service-worker-immediate": "./src/register_service_worker_immediate.js",
         "./service-worker-registration": {
             "types": "./types/service_worker_registration.d.ts",
             "default": "./src/service_worker_registration.js"

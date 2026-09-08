@@ -44,7 +44,7 @@ const jsonReferenceModuleLoader = fileURLToPath(new URL('./json_reference_module
 const jsonReferencesLoader = fileURLToPath(new URL('./json_references_loader.js', import.meta.url));
 const postcssLoader = require.resolve('postcss-loader');
 const sassLoader = require.resolve('sass-loader');
-const serviceWorkerRegistrationEntry = '@tomaschochola/tooling-webpack/register-service-worker';
+const serviceWorkerRegistrationEntries = new Set(['@tomaschochola/tooling-webpack/register-service-worker', '@tomaschochola/tooling-webpack/register-service-worker-immediate']);
 const serviceWorkerRetirementSource = fileURLToPath(new URL('./service_worker_retirement.js', import.meta.url));
 const supportedEcmaVersions = new Set([5, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025]);
 const webpackModes = new Set(['development', 'none', 'production']);
@@ -105,6 +105,16 @@ function explode(value) {
     return value;
 }
 
+function replaceDefaultMinimizer(minimizers, replacement) {
+    const hasDefaultMinimizer = minimizers.includes('...');
+
+    if (!hasDefaultMinimizer) {
+        return [...minimizers, replacement];
+    }
+
+    return minimizers.flatMap((minimizer) => (minimizer === '...' ? [replacement] : [minimizer]));
+}
+
 function entryImportsRequest(entry, request) {
     if (typeof entry === 'string') {
         return entry === request;
@@ -118,8 +128,12 @@ function entryImportsRequest(entry, request) {
 }
 
 function assertServiceWorkerRetirementEntries(entries) {
-    if (typeof entries === 'object' && entries !== null && Object.values(entries).some((entry) => entryImportsRequest(entry, serviceWorkerRegistrationEntry))) {
-        throw new Error(`Service Worker retirement builds must not include the "${serviceWorkerRegistrationEntry}" entry because it would register the retirement worker again.`);
+    const registrationEntry = [...serviceWorkerRegistrationEntries].find(
+        (request) => typeof entries === 'object' && entries !== null && Object.values(entries).some((entry) => entryImportsRequest(entry, request)),
+    );
+
+    if (registrationEntry !== undefined) {
+        throw new Error(`Service Worker retirement builds must not include the "${registrationEntry}" entry because it would register the retirement worker again.`);
     }
 }
 
@@ -311,7 +325,7 @@ export class WebpackConfigBuilder {
             },
             optimization: {
                 removeAvailableModules: this.isProduction,
-                minimizer: [],
+                minimizer: ['...'],
             },
         };
     }
@@ -1035,7 +1049,6 @@ export class WebpackConfigBuilder {
         const { minimizerOptions = {}, ...options } = configuration;
 
         const defaultCompressOptions = {
-            drop_console: true,
             drop_debugger: true,
             passes: 5,
         };
@@ -1074,7 +1087,7 @@ export class WebpackConfigBuilder {
                 ...this.#config,
                 optimization: {
                     ...this.#config.optimization,
-                    minimizer: [...(this.#config.optimization.minimizer ?? []), minimizer],
+                    minimizer: replaceDefaultMinimizer(this.#config.optimization.minimizer ?? ['...'], minimizer),
                 },
             },
             'addTerserMinimizer',

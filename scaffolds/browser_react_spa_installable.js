@@ -34,7 +34,7 @@ export default function (env = {}, argv = {}) {
         })
         .optimizeChunks()
         .setEntries({
-            index: ['./src/index.ts'],
+            index: ['./src/index.tsx'],
         })
         .addBrowserLoaders({
             html: {
@@ -43,6 +43,7 @@ export default function (env = {}, argv = {}) {
                 },
             },
         })
+        .addWebManifestLoader()
         .addDefinePlugin({
             'process.env.APP_ENV': JSON.stringify(appEnv),
             'process.env.APP_NAME': JSON.stringify(appName),

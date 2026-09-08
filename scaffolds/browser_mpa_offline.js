@@ -12,6 +12,21 @@
 
 import { normalizePublicUrl, WebpackConfigBuilder } from '@tomaschochola/tooling-webpack';
 
+const pages = [
+    {
+        entry: ['./src/index.ts'],
+        filename: 'index.html',
+        name: 'index',
+        template: './src/index.html',
+    },
+    {
+        entry: ['./src/admin.ts'],
+        filename: 'admin/index.html',
+        name: 'admin',
+        template: './src/admin.html',
+    },
+];
+
 export default function (env = {}, argv = {}) {
     let tooling = new WebpackConfigBuilder({
         ecmaVersion: 2025,
@@ -29,13 +44,8 @@ export default function (env = {}, argv = {}) {
     tooling = isProductionBuild ? tooling.setPublicUrl(publicUrl) : tooling.setPublicPath('/');
 
     tooling = tooling
-        .enableDevServerHistoryApiFallback({
-            disableDotRule: true,
-        })
         .optimizeChunks()
-        .setEntries({
-            index: ['./src/index.ts'],
-        })
+        .setEntries(Object.fromEntries(pages.map(({ entry, name }) => [name, [...(isProductionBuild ? ['@tomaschochola/tooling-webpack/register-service-worker'] : []), ...entry]])))
         .addBrowserLoaders({
             html: {
                 variables: {
@@ -43,19 +53,25 @@ export default function (env = {}, argv = {}) {
                 },
             },
         })
+        .addWebManifestLoader()
         .addDefinePlugin({
             'process.env.APP_ENV': JSON.stringify(appEnv),
             'process.env.APP_NAME': JSON.stringify(appName),
             'process.env.APP_VERSION': JSON.stringify(appVersion),
-        })
-        .addHtmlPlugin({
-            template: './src/index.html',
-        })
-        .addRobotsPlugin()
-        .optimizeAssets();
+        });
+
+    for (const { filename, name, template } of pages) {
+        tooling = tooling.addHtmlPlugin({
+            chunks: [name],
+            filename,
+            template,
+        });
+    }
+
+    tooling = tooling.addRobotsPlugin().optimizeAssets();
 
     if (isProductionBuild) {
-        tooling = tooling.precompressAssets().addArchivePlugin();
+        tooling = tooling.precompressAssets().addWorkboxServiceWorkerPlugin().addArchivePlugin();
     }
 
     return tooling.toConfig();

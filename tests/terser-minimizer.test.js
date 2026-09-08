@@ -27,7 +27,6 @@ test('uses the required ECMAScript output version', () => {
     assert.deepEqual(plugin.options.minimizer.options, {
         ecma: 2025,
         compress: {
-            drop_console: true,
             drop_debugger: true,
             passes: 5,
         },

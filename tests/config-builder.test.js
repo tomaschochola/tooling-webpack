@@ -689,6 +689,13 @@ test('configures the canonical browser asset optimizers', () => {
     });
 });
 
+test('preserves the default JavaScript minimizer when adding another asset minimizer', () => {
+    const config = new WebpackConfigBuilder({ ecmaVersion: 2025 }).addCssMinimizer().toConfig();
+
+    assert.equal(config.optimization.minimizer[0], '...');
+    assert.equal(config.optimization.minimizer[1].constructor.name, 'CssMinimizerPlugin');
+});
+
 test('precompresses compressible web assets only when compression reduces their size', () => {
     const builder = new WebpackConfigBuilder({ ecmaVersion: 2025 }).precompressAssets();
     const config = builder.toConfig();
@@ -832,20 +839,21 @@ test('keeps generated and retirement service workers mutually exclusive', () => 
     });
 });
 
-test('rejects the canonical registration entry from retirement builds regardless of static entry shape or call order', () => {
-    const registrationEntry = '@tomaschochola/tooling-webpack/register-service-worker';
-    const expected = {
-        message: `Service Worker retirement builds must not include the "${registrationEntry}" entry because it would register the retirement worker again.`,
-    };
-    const entries = [{ index: registrationEntry }, { index: [registrationEntry, './src/index.js'] }, { index: { import: [registrationEntry, './src/index.js'] } }];
+test('rejects registration entries from retirement builds regardless of static entry shape or call order', () => {
+    for (const registrationEntry of ['@tomaschochola/tooling-webpack/register-service-worker', '@tomaschochola/tooling-webpack/register-service-worker-immediate']) {
+        const expected = {
+            message: `Service Worker retirement builds must not include the "${registrationEntry}" entry because it would register the retirement worker again.`,
+        };
+        const entries = [{ index: registrationEntry }, { index: [registrationEntry, './src/index.js'] }, { index: { import: [registrationEntry, './src/index.js'] } }];
 
-    for (const entry of entries) {
-        assert.throws(() => new WebpackConfigBuilder({ ecmaVersion: 2025 }).setEntries(entry).addServiceWorkerRetirement(), expected);
+        for (const entry of entries) {
+            assert.throws(() => new WebpackConfigBuilder({ ecmaVersion: 2025 }).setEntries(entry).addServiceWorkerRetirement(), expected);
+        }
+
+        const retirementBeforeEntries = new WebpackConfigBuilder({ ecmaVersion: 2025 }).addServiceWorkerRetirement().setEntries({ index: { import: registrationEntry } });
+
+        assert.throws(() => retirementBeforeEntries.toConfig(), expected);
     }
-
-    const retirementBeforeEntries = new WebpackConfigBuilder({ ecmaVersion: 2025 }).addServiceWorkerRetirement().setEntries({ index: { import: registrationEntry } });
-
-    assert.throws(() => retirementBeforeEntries.toConfig(), expected);
 });
 
 test('does not activate or claim existing service worker clients by default', () => {

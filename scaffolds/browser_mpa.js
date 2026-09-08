@@ -45,7 +45,7 @@ export default function (env = {}, argv = {}) {
 
     tooling = tooling
         .optimizeChunks()
-        .setEntries(Object.fromEntries(pages.map(({ entry, name }) => [name, [...(isProductionBuild ? ['@tomaschochola/tooling-webpack/register-service-worker'] : []), ...entry]])))
+        .setEntries(Object.fromEntries(pages.map(({ entry, name }) => [name, entry])))
         .addBrowserLoaders({
             html: {
                 variables: {
@@ -53,7 +53,6 @@ export default function (env = {}, argv = {}) {
                 },
             },
         })
-        .addWebManifestLoader()
         .addDefinePlugin({
             'process.env.APP_ENV': JSON.stringify(appEnv),
             'process.env.APP_NAME': JSON.stringify(appName),
@@ -71,13 +70,7 @@ export default function (env = {}, argv = {}) {
     tooling = tooling.addRobotsPlugin().optimizeAssets();
 
     if (isProductionBuild) {
-        tooling = tooling
-            .precompressAssets()
-            .addWorkboxServiceWorkerPlugin({
-                clientsClaim: true,
-                skipWaiting: true,
-            })
-            .addArchivePlugin();
+        tooling = tooling.precompressAssets().addArchivePlugin();
     }
 
     return tooling.toConfig();

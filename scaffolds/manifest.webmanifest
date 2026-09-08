@@ -36,6 +36,7 @@
             "type": "image/png"
         }
     ],
+    "id": "./",
     "lang": "en",
     "name": "Application",
     "scope": "./",

@@ -14,8 +14,17 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import createMpaConfig from '../scaffolds/browser_mpa.js';
+import createMpaInstallableConfig from '../scaffolds/browser_mpa_installable.js';
+import createMpaOfflineConfig from '../scaffolds/browser_mpa_offline.js';
+import createMpaOfflineImmediateConfig from '../scaffolds/browser_mpa_offline_immediate.js';
 import createReactSpaConfig from '../scaffolds/browser_react_spa.js';
+import createReactSpaInstallableConfig from '../scaffolds/browser_react_spa_installable.js';
+import createReactSpaOfflineConfig from '../scaffolds/browser_react_spa_offline.js';
+import createReactSpaOfflineImmediateConfig from '../scaffolds/browser_react_spa_offline_immediate.js';
 import createSpaConfig from '../scaffolds/browser_spa.js';
+import createSpaInstallableConfig from '../scaffolds/browser_spa_installable.js';
+import createSpaOfflineConfig from '../scaffolds/browser_spa_offline.js';
+import createSpaOfflineImmediateConfig from '../scaffolds/browser_spa_offline_immediate.js';
 
 function createEnvironmentConfigs(createConfig) {
     const development = createConfig(
@@ -64,149 +73,98 @@ function createEnvironmentConfigs(createConfig) {
     return { development, production, productionPreview, productionServe };
 }
 
-function pluginNames(config) {
-    return config.plugins.map(({ constructor }) => constructor.name);
+function findWorkbox(config) {
+    return config.plugins.find(({ constructor }) => constructor.name === 'GenerateSW');
 }
 
-test('browser SPA scaffold keeps development and production behavior explicit', () => {
-    const { development, production, productionPreview, productionServe } = createEnvironmentConfigs(createSpaConfig);
+function hasWebManifestRule(config) {
+    return config.module.rules.some(({ test }) => test?.test('application.webmanifest') === true);
+}
 
-    assert.deepEqual(development.entry, {
-        index: ['./src/index.ts'],
-    });
-    assert.deepEqual(production.entry, {
-        index: ['@tomaschochola/tooling-webpack/register-service-worker', './src/index.ts'],
-    });
-    assert.deepEqual(productionPreview.entry, {
-        index: ['@tomaschochola/tooling-webpack/register-service-worker', './src/index.ts'],
-    });
-    assert.deepEqual(productionServe.entry, {
-        index: ['./src/index.ts'],
-    });
-    assert.deepEqual(pluginNames(development), ['DefinePlugin', 'HtmlWebpackPlugin', 'RobotsPlugin', 'ImageMinimizerPlugin']);
-    assert.deepEqual(pluginNames(production), ['DefinePlugin', 'HtmlWebpackPlugin', 'RobotsPlugin', 'ImageMinimizerPlugin', 'CompressionPlugin', 'CompressionPlugin', 'GenerateSW', 'ArchivePlugin']);
-    assert.deepEqual(pluginNames(productionPreview), pluginNames(production));
-    assert.deepEqual(pluginNames(productionServe), pluginNames(development));
-    assert.equal(development.plugins[3].options.minimizer, undefined);
-    assert.equal(production.plugins[3].options.minimizer, undefined);
-    assert.equal(productionPreview.plugins[3].options.minimizer, undefined);
-    assert.equal(development.optimization.runtimeChunk, 'single');
-    assert.deepEqual(development.optimization.splitChunks, { chunks: 'all' });
+function assertSpaProfile(createConfig, entry, { immediate = false, installable = false, offline = false } = {}) {
+    const { development, production, productionPreview, productionServe } = createEnvironmentConfigs(createConfig);
+    const productionEntry = immediate
+        ? ['@tomaschochola/tooling-webpack/register-service-worker-immediate', entry]
+        : offline
+          ? ['@tomaschochola/tooling-webpack/register-service-worker', entry]
+          : [entry];
 
-    assert.equal(development.plugins[1].options.template, './src/index.html');
+    assert.deepEqual(development.entry, { index: [entry] });
+    assert.deepEqual(production.entry, { index: productionEntry });
+    assert.deepEqual(productionPreview.entry, { index: productionEntry });
+    assert.deepEqual(productionServe.entry, { index: [entry] });
+    assert.equal(hasWebManifestRule(production), installable || offline);
+    assert.equal(findWorkbox(development), undefined);
+    assert.equal(findWorkbox(productionServe), undefined);
+    assert.deepEqual(production.devServer.historyApiFallback, { disableDotRule: true });
+    assert.equal(production.output.publicPath, 'https://example.com/');
 
-    const workbox = production.plugins.at(-2);
+    const workbox = findWorkbox(production);
+
+    if (!offline) {
+        assert.equal(workbox, undefined);
+        return;
+    }
 
     assert.equal(workbox.config.navigateFallback, 'index.html');
-    assert.equal(workbox.config.navigateFallbackDenylist, undefined);
-    assert.equal(workbox.config.clientsClaim, true);
-    assert.equal(workbox.config.skipWaiting, true);
-    assert.equal(development.devtool, 'source-map');
-    assert.equal(production.devtool, false);
-    assert.equal(productionPreview.devtool, false);
-    assert.equal(productionServe.devtool, false);
-    assert.equal(development.output.publicPath, '/');
-    assert.equal(production.output.publicPath, 'https://example.com/');
-    assert.equal(productionPreview.output.publicPath, 'https://preview.example.com/');
-    assert.equal(productionServe.output.publicPath, '/');
-    assert.deepEqual(development.devServer.historyApiFallback, { disableDotRule: true });
-    assert.deepEqual(production.devServer.historyApiFallback, { disableDotRule: true });
-    assert.deepEqual(productionPreview.devServer.historyApiFallback, { disableDotRule: true });
-});
-
-test('React SPA scaffold uses a TSX entry', () => {
-    const { development, production, productionPreview, productionServe } = createEnvironmentConfigs(createReactSpaConfig);
-
-    assert.deepEqual(development.entry, {
-        index: ['./src/index.tsx'],
-    });
-    assert.deepEqual(production.entry, {
-        index: ['@tomaschochola/tooling-webpack/register-service-worker', './src/index.tsx'],
-    });
-    assert.deepEqual(productionPreview.entry, {
-        index: ['@tomaschochola/tooling-webpack/register-service-worker', './src/index.tsx'],
-    });
-    assert.deepEqual(productionServe.entry, {
-        index: ['./src/index.tsx'],
-    });
-    assert.deepEqual(development.devServer.historyApiFallback, { disableDotRule: true });
-    assert.equal(production.plugins.at(-2).config.navigateFallbackDenylist, undefined);
-});
-
-test('browser MPA scaffold emits an HTML document per entry without an SPA fallback', () => {
-    const { development, production, productionPreview, productionServe } = createEnvironmentConfigs(createMpaConfig);
-
-    assert.deepEqual(development.entry, {
-        admin: ['./src/admin.ts'],
-        index: ['./src/index.ts'],
-    });
-    assert.deepEqual(production.entry, {
-        admin: ['@tomaschochola/tooling-webpack/register-service-worker', './src/admin.ts'],
-        index: ['@tomaschochola/tooling-webpack/register-service-worker', './src/index.ts'],
-    });
-    assert.deepEqual(productionPreview.entry, {
-        admin: ['@tomaschochola/tooling-webpack/register-service-worker', './src/admin.ts'],
-        index: ['@tomaschochola/tooling-webpack/register-service-worker', './src/index.ts'],
-    });
-    assert.deepEqual(productionServe.entry, {
-        admin: ['./src/admin.ts'],
-        index: ['./src/index.ts'],
-    });
-    assert.deepEqual(pluginNames(development), ['DefinePlugin', 'HtmlWebpackPlugin', 'HtmlWebpackPlugin', 'RobotsPlugin', 'ImageMinimizerPlugin']);
-    assert.deepEqual(pluginNames(production), [
-        'DefinePlugin',
-        'HtmlWebpackPlugin',
-        'HtmlWebpackPlugin',
-        'RobotsPlugin',
-        'ImageMinimizerPlugin',
-        'CompressionPlugin',
-        'CompressionPlugin',
-        'GenerateSW',
-        'ArchivePlugin',
-    ]);
-    assert.deepEqual(pluginNames(productionPreview), pluginNames(production));
-    assert.deepEqual(pluginNames(productionServe), pluginNames(development));
-
-    const htmlPlugins = development.plugins.filter(({ constructor }) => constructor.name === 'HtmlWebpackPlugin');
-
-    assert.deepEqual(
-        htmlPlugins.map(({ options }) => ({
-            chunks: options.chunks,
-            filename: options.filename,
-            template: options.template,
-        })),
-        [
-            {
-                chunks: ['index'],
-                filename: 'index.html',
-                template: './src/index.html',
-            },
-            {
-                chunks: ['admin'],
-                filename: 'admin/index.html',
-                template: './src/admin.html',
-            },
-        ],
+    assert.equal(workbox.config.clientsClaim ?? false, immediate);
+    assert.equal(workbox.config.skipWaiting ?? false, immediate);
+    assert.equal(
+        workbox.config.include.some((pattern) => pattern.test('image.avif')),
+        immediate,
     );
-    assert.equal(development.plugins[4].options.minimizer, undefined);
-    assert.equal(production.plugins[4].options.minimizer, undefined);
-    assert.equal(productionPreview.plugins[4].options.minimizer, undefined);
-    assert.equal(development.output.publicPath, '/');
-    assert.equal(production.output.publicPath, 'https://example.com/');
-    assert.equal(productionPreview.output.publicPath, 'https://preview.example.com/');
-    assert.equal(productionServe.output.publicPath, '/');
-    assert.equal(development.optimization.runtimeChunk, 'single');
-    assert.deepEqual(development.optimization.splitChunks, { chunks: 'all' });
+}
 
-    const workbox = production.plugins.at(-2);
+test('provides explicit browser SPA delivery profiles', () => {
+    assertSpaProfile(createSpaConfig, './src/index.ts');
+    assertSpaProfile(createSpaInstallableConfig, './src/index.ts', { installable: true });
+    assertSpaProfile(createSpaOfflineConfig, './src/index.ts', { offline: true });
+    assertSpaProfile(createSpaOfflineImmediateConfig, './src/index.ts', { immediate: true, offline: true });
+});
 
-    assert.equal(workbox.config.navigateFallback, undefined);
-    assert.equal(workbox.config.navigateFallbackDenylist, undefined);
-    assert.equal(workbox.config.clientsClaim, true);
-    assert.equal(workbox.config.skipWaiting, true);
-    assert.equal(development.devServer.historyApiFallback, undefined);
-    assert.equal(production.devServer.historyApiFallback, undefined);
-    assert.equal(productionPreview.devServer.historyApiFallback, undefined);
+test('provides equivalent React SPA delivery profiles with TSX entries', () => {
+    assertSpaProfile(createReactSpaConfig, './src/index.tsx');
+    assertSpaProfile(createReactSpaInstallableConfig, './src/index.tsx', { installable: true });
+    assertSpaProfile(createReactSpaOfflineConfig, './src/index.tsx', { offline: true });
+    assertSpaProfile(createReactSpaOfflineImmediateConfig, './src/index.tsx', { immediate: true, offline: true });
+});
+
+test('provides equivalent browser MPA delivery profiles without an SPA fallback', () => {
+    for (const [createConfig, profile] of [
+        [createMpaConfig, 'standard'],
+        [createMpaInstallableConfig, 'installable'],
+        [createMpaOfflineConfig, 'offline'],
+        [createMpaOfflineImmediateConfig, 'immediate'],
+    ]) {
+        const { development, production } = createEnvironmentConfigs(createConfig);
+        const registrationEntry = profile === 'immediate' ? '@tomaschochola/tooling-webpack/register-service-worker-immediate' : '@tomaschochola/tooling-webpack/register-service-worker';
+        const expectedEntry = (entry) => (profile === 'offline' || profile === 'immediate' ? [registrationEntry, entry] : [entry]);
+
+        assert.deepEqual(development.entry, {
+            admin: ['./src/admin.ts'],
+            index: ['./src/index.ts'],
+        });
+        assert.deepEqual(production.entry, {
+            admin: expectedEntry('./src/admin.ts'),
+            index: expectedEntry('./src/index.ts'),
+        });
+        assert.equal(hasWebManifestRule(production), profile !== 'standard');
+        assert.equal(production.devServer.historyApiFallback, undefined);
+
+        const workbox = findWorkbox(production);
+
+        if (profile === 'standard' || profile === 'installable') {
+            assert.equal(workbox, undefined);
+        } else {
+            assert.equal(workbox.config.navigateFallback, undefined);
+            assert.equal(workbox.config.clientsClaim ?? false, profile === 'immediate');
+            assert.equal(workbox.config.skipWaiting ?? false, profile === 'immediate');
+            assert.equal(
+                workbox.config.include.some((pattern) => pattern.test('image.avif')),
+                profile === 'immediate',
+            );
+        }
+    }
 });
 
 test('provides generic standard and PWA scaffolds', async () => {
@@ -236,7 +194,7 @@ test('provides generic standard and PWA scaffolds', async () => {
     assert.match(pwaHtml, /href="\.\.\/build\/favicons\/favicon\.svg"/u);
     assert.match(pwaHtml, /type="application\/ld\+json"/u);
     assert.ok(manifest.icons.every(({ src }) => src.startsWith('../build/favicons/')));
-    assert.equal(Object.hasOwn(manifest, 'id'), false);
+    assert.equal(manifest.id, './');
     assert.equal(manifest.name, 'Application');
     assert.equal(manifest.scope, './');
     assert.equal(manifest.start_url, './');

@@ -16,7 +16,7 @@ function reportError(error) {
     console.error('Service Worker operation failed.', error);
 }
 
-export async function registerServiceWorker({ minimumUpdateIntervalMilliseconds = defaultUpdateIntervalMilliseconds, onError = reportError, reloadOnUpdate = true, scriptURL = '/sw.js' } = {}) {
+export async function registerServiceWorker({ minimumUpdateIntervalMilliseconds = defaultUpdateIntervalMilliseconds, onError = reportError, reloadOnUpdate = false, scriptURL = '/sw.js' } = {}) {
     if (!Number.isFinite(minimumUpdateIntervalMilliseconds) || minimumUpdateIntervalMilliseconds < 0) {
         throw new TypeError('Minimum Service Worker update interval must be a non-negative finite number.');
     }
@@ -30,11 +30,15 @@ export async function registerServiceWorker({ minimumUpdateIntervalMilliseconds 
     }
 
     const serviceWorkers = browserNavigator.serviceWorker;
-    const previousController = serviceWorkers.controller;
+    let currentController = serviceWorkers.controller;
     let reloading = false;
 
     const handleControllerChange = () => {
-        if (!reloadOnUpdate || previousController === null || reloading) {
+        const previousController = currentController;
+
+        currentController = serviceWorkers.controller;
+
+        if (!reloadOnUpdate || previousController === null || currentController === null || reloading) {
             return;
         }
 
