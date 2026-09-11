@@ -112,13 +112,13 @@ test('keeps non-indexable metadata crawlable by default', async () => {
 test('updates existing robots metadata without leaving duplicates', async () => {
     const output = await compile({
         html: `<!doctype html>
-      <html>
+        <html>
         <head>
-          <meta content="noindex" name="robots">
-          <meta name='robots' content='nofollow'>
+            <meta content="noindex" name="robots">
+            <meta name='robots' content='nofollow'>
         </head>
         <body></body>
-      </html>`,
+        </html>`,
         indexable: true,
     });
 
