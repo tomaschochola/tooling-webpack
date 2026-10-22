@@ -2,24 +2,34 @@
 <html lang="en">
     <head>
         <meta charset="utf-8" />
+
         <meta
             name="viewport"
             content="width=device-width, initial-scale=1.0, viewport-fit=cover"
         />
 
-        <title>Application</title>
+        <title>title</title>
+
         <meta
             name="description"
-            content="Application description."
+            content="description"
         />
+
+        <meta
+            name="author"
+            content="author"
+        />
+
         <meta
             name="application-name"
-            content="Application"
+            content="application-name"
         />
+
         <meta
             name="color-scheme"
             content="only light"
         />
+
         <meta
             name="theme-color"
             content="#ffffff"
@@ -34,46 +44,57 @@
             property="og:type"
             content="website"
         />
+
         <meta
             property="og:site_name"
-            content="Application"
+            content="og:site_name"
         />
+
         <meta
             property="og:title"
-            content="Application"
+            content="og:title"
         />
+
         <meta
             property="og:description"
-            content="Application description."
+            content="og:description"
         />
+
         <meta
             property="og:url"
             content="{{ PUBLIC_URL }}"
         />
+
         <meta
             property="og:image"
             content="../build/open-graph/open-graph.png"
         />
+
         <meta
             property="og:image:secure_url"
             content="../build/open-graph/open-graph.png"
         />
+
         <meta
             property="og:image:type"
             content="image/png"
         />
+
         <meta
             property="og:image:width"
             content="1200"
         />
+
         <meta
             property="og:image:height"
             content="630"
         />
+
         <meta
             property="og:image:alt"
-            content="Application preview"
+            content="og:image:alt"
         />
+
         <meta
             property="og:locale"
             content="en_US"
@@ -83,30 +104,35 @@
             name="twitter:card"
             content="summary_large_image"
         />
+
         <meta
             name="twitter:title"
-            content="Application"
+            content="twitter:title"
         />
+
         <meta
             name="twitter:description"
-            content="Application description."
+            content="twitter:description"
         />
+
         <meta
             name="twitter:image"
             content="../build/open-graph/open-graph.png"
         />
+
         <meta
             name="twitter:image:alt"
-            content="Application preview"
+            content="twitter:image:alt"
         />
 
         <meta
             name="apple-mobile-web-app-capable"
             content="yes"
         />
+
         <meta
             name="apple-mobile-web-app-title"
-            content="Application"
+            content="apple-mobile-web-app-title"
         />
 
         <link
@@ -146,11 +172,11 @@
             {
                 "@context": "https://schema.org",
                 "@type": "WebSite",
-                "@id": "https://example.com/#website",
-                "description": "Application description.",
+                "@id": "{{ PUBLIC_URL }}#website",
+                "description": "description",
                 "inLanguage": "en",
-                "name": "Application",
-                "url": "https://example.com/"
+                "name": "name",
+                "url": "{{ PUBLIC_URL }}"
             }
         </script>
     </head>

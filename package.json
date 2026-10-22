@@ -74,12 +74,7 @@
         "TomasChochola",
         "Tomas Chochola",
         "Tomáš Chochola",
-        "bundler",
-        "configuration",
-        "javascript",
-        "tooling-webpack",
-        "typescript",
-        "webpack"
+        "tooling-webpack"
     ],
     "license": "CC-BY-ND-4.0",
     "main": "./src/index.js",

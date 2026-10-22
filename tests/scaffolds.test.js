@@ -180,14 +180,31 @@ test('provides generic standard and PWA scaffolds', async () => {
         assert.match(scaffold, /<html lang="en">/u);
         assert.match(scaffold, /<meta charset="utf-8" \/>/u);
         assert.match(scaffold, /content="width=device-width, initial-scale=1\.0, viewport-fit=cover"/u);
-        assert.doesNotMatch(scaffold, /tomaschochola|tooling-webpack|template-react|template-web-components/u);
+        assert.match(scaffold, /<title>title<\/title>/u);
+        assert.match(scaffold, /<meta\s+name="description"\s+content="description"\s*\/>/u);
+        assert.match(scaffold, /<meta\s+name="author"\s+content="author"\s*\/>/u);
+        assert.doesNotMatch(scaffold, /name="keywords"/u);
+        assert.doesNotMatch(scaffold, /tomaschochola|tooling-webpack|template-react|template-web-components|\bApplication\b/u);
     }
 
-    assert.match(indexHtml, /<title><\/title>/u);
-    assert.match(pwaHtml, /name="application-name"/u);
+    for (const [attribute, property] of [
+        ['name', 'application-name'],
+        ['property', 'og:site_name'],
+        ['property', 'og:title'],
+        ['property', 'og:description'],
+        ['property', 'og:image:alt'],
+        ['name', 'twitter:title'],
+        ['name', 'twitter:description'],
+        ['name', 'twitter:image:alt'],
+        ['name', 'apple-mobile-web-app-title'],
+    ]) {
+        assert.match(pwaHtml, new RegExp(`${attribute}="${property}"\\s+content="${property}"`, 'u'));
+    }
+
     assert.match(pwaHtml, /property="og:type"/u);
     assert.match(pwaHtml, /name="twitter:card"/u);
-    assert.equal(pwaHtml.split('{{ PUBLIC_URL }}').length - 1, 2);
+    assert.equal(pwaHtml.split('{{ PUBLIC_URL }}').length - 1, 4);
+    assert.doesNotMatch(pwaHtml, /example\.com/u);
     assert.match(pwaHtml, /content="\.\.\/build\/open-graph\/open-graph\.png"/u);
     assert.match(pwaHtml, /href="\.\/manifest\.webmanifest"/u);
     assert.match(pwaHtml, /href="\.\.\/build\/favicons\/favicon\.ico"/u);
@@ -195,8 +212,10 @@ test('provides generic standard and PWA scaffolds', async () => {
     assert.match(pwaHtml, /type="application\/ld\+json"/u);
     assert.ok(manifest.icons.every(({ src }) => src.startsWith('../build/favicons/')));
     assert.equal(manifest.id, './');
-    assert.equal(manifest.name, 'Application');
+    assert.equal(manifest.description, 'description');
+    assert.equal(manifest.name, 'name');
     assert.equal(manifest.scope, './');
+    assert.equal(manifest.short_name, 'short_name');
     assert.equal(manifest.start_url, './');
-    assert.doesNotMatch(manifestSource, /tomaschochola|tooling-webpack|template-react|template-web-components/u);
+    assert.doesNotMatch(manifestSource, /tomaschochola|tooling-webpack|template-react|template-web-components|\bApplication\b/u);
 });

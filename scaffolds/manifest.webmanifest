@@ -1,6 +1,6 @@
 {
     "background_color": "#ffffff",
-    "description": "Application description.",
+    "description": "description",
     "display": "standalone",
     "icons": [
         {
@@ -38,9 +38,9 @@
     ],
     "id": "./",
     "lang": "en",
-    "name": "Application",
+    "name": "name",
     "scope": "./",
-    "short_name": "Application",
+    "short_name": "short_name",
     "start_url": "./",
     "theme_color": "#ffffff"
 }
