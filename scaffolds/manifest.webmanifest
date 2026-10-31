@@ -1,6 +1,6 @@
 {
     "background_color": "#ffffff",
-    "description": "description",
+    "description": "github.com/tomaschochola/tooling-webpack",
     "display": "standalone",
     "icons": [
         {
@@ -38,9 +38,9 @@
     ],
     "id": "./",
     "lang": "en",
-    "name": "name",
+    "name": "github.com/tomaschochola/tooling-webpack",
     "scope": "./",
-    "short_name": "short_name",
+    "short_name": "github.com/tomaschochola/tooling-webpack",
     "start_url": "./",
     "theme_color": "#ffffff"
 }
