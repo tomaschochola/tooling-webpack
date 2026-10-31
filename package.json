@@ -27,14 +27,14 @@
         "image-minimizer-webpack-plugin": "^5.0.0",
         "json-minimizer-webpack-plugin": "^5.0.1",
         "postcss-loader": "^8.2.1",
-        "sass-embedded": "^1.104.0",
-        "sass-loader": "^17.0.1",
-        "sharp": "^0.35.4",
+        "sass-embedded": "^1.107.1",
+        "sass-loader": "^17.1.0",
+        "sharp": "^0.35.5",
         "svgo": "^4.1.0",
         "terser-webpack-plugin": "^5.6.1",
-        "webpack": "^5.110.3",
-        "webpack-cli": "^7.2.3",
-        "webpack-dev-server": "^6.0.0",
+        "webpack": "^5.112.2",
+        "webpack-cli": "^7.3.1",
+        "webpack-dev-server": "^6.1.0",
         "workbox-webpack-plugin": "^7.4.1"
     },
     "description": "Composable Webpack configuration builder for modern TypeScript web applications.",
@@ -80,7 +80,7 @@
     "main": "./src/index.js",
     "name": "@tomaschochola/tooling-webpack",
     "peerDependencies": {
-        "@babel/core": "^8.0.1"
+        "@babel/core": "^8.0.10"
     },
     "private": true,
     "repository": {
