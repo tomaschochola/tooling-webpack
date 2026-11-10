@@ -64,10 +64,7 @@ test('uses the client-owned HTML document without package metadata', async (cont
     });
 
     await writeFile(join(root, 'index.js'), 'export const value = 42;\n');
-    await writeFile(
-        join(root, 'index.html'),
-        '<!doctype html><html lang="cs"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=2" /><meta name="description" content="Client description" /><link rel="canonical" href="{{ PUBLIC_URL }}" /><title>Client title</title></head><body></body></html>\n',
-    );
+    await writeFile(join(root, 'index.html'), '<!doctype html><html lang="cs"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=2" /><meta name="description" content="Client description" /><link rel="canonical" href="{{ PUBLIC_URL }}" /><title>Client title</title></head><body></body></html>\n');
 
     const config = new WebpackConfigBuilder({
         ecmaVersion: 2025,
@@ -115,25 +112,7 @@ test('emits local social images unchanged with hashed absolute URLs', async (con
 
     await writeFile(join(root, 'index.js'), "import image from './open-graph.png?resource'; document.body.dataset.image = image;\n");
     await writeFile(join(root, 'open-graph.png'), image);
-    await writeFile(
-        join(root, 'index.html'),
-        [
-            '<!doctype html>',
-            '<html lang="en">',
-            '<head>',
-            '<meta property="og:image" content="./open-graph.png" />',
-            '<meta property="og:image:url" content="./open-graph.png" />',
-            '<meta property="og:image:secure_url" content="./open-graph.png" />',
-            '<meta name="twitter:image" content="./open-graph.png" />',
-            '<meta name="description" content="./not-an-image.png?resource" />',
-            '<meta property="og:image" content="https://external.example/image.png" />',
-            '<title>Social image</title>',
-            '</head>',
-            '<body></body>',
-            '</html>',
-            '',
-        ].join('\n'),
-    );
+    await writeFile(join(root, 'index.html'), ['<!doctype html>', '<html lang="en">', '<head>', '<meta property="og:image" content="./open-graph.png" />', '<meta property="og:image:url" content="./open-graph.png" />', '<meta property="og:image:secure_url" content="./open-graph.png" />', '<meta name="twitter:image" content="./open-graph.png" />', '<meta name="description" content="./not-an-image.png?resource" />', '<meta property="og:image" content="https://external.example/image.png" />', '<title>Social image</title>', '</head>', '<body></body>', '</html>', ''].join('\n'));
 
     const config = new WebpackConfigBuilder({
         ecmaVersion: 2025,

@@ -176,11 +176,7 @@ async function validateOutput(data, format, input) {
         throw new Error('Sharp did not preserve the animation loop count in the generated WebP.');
     }
 
-    if (
-        input.pages > 1 &&
-        input.metadata.delay !== undefined &&
-        (metadata.delay === undefined || metadata.delay.length !== input.metadata.delay.length || metadata.delay.some((delay, index) => delay !== input.metadata.delay[index]))
-    ) {
+    if (input.pages > 1 && input.metadata.delay !== undefined && (metadata.delay === undefined || metadata.delay.length !== input.metadata.delay.length || metadata.delay.some((delay, index) => delay !== input.metadata.delay[index]))) {
         throw new Error('Sharp did not preserve the animation frame delays in the generated WebP.');
     }
 

@@ -105,13 +105,7 @@ test('emits configured local JSON references through native Webpack asset module
         join(root, 'manifest.webmanifest'),
         `${JSON.stringify(
             {
-                icons: [
-                    { src: './icon.svg?as=webp' },
-                    { src: '/maskable%20icon.svg' },
-                    { src: 'https://cdn.example.com/icon.svg' },
-                    { src: 'data:image/svg+xml,%3Csvg%3E%3C/svg%3E' },
-                    { src: '#embedded-icon' },
-                ],
+                icons: [{ src: './icon.svg?as=webp' }, { src: '/maskable%20icon.svg' }, { src: 'https://cdn.example.com/icon.svg' }, { src: 'data:image/svg+xml,%3Csvg%3E%3C/svg%3E' }, { src: '#embedded-icon' }],
                 scope: './',
                 start_url: './',
             },

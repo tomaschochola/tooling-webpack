@@ -252,10 +252,7 @@ test('exports CSS as text and a constructable stylesheet', async (context) => {
         });
     });
 
-    await writeFile(
-        join(root, 'index.js'),
-        ["import sheet from './style.css?sheet';", "import text from './style.css?text';", 'process.stdout.write(`${typeof sheet.replaceSync}\n${sheet.cssText}\n${text}`);', ''].join('\n'),
-    );
+    await writeFile(join(root, 'index.js'), ["import sheet from './style.css?sheet';", "import text from './style.css?text';", 'process.stdout.write(`${typeof sheet.replaceSync}\n${sheet.cssText}\n${text}`);', ''].join('\n'));
     await writeFile(join(root, 'style.css'), '.example {\n  color: red;\n}\n');
 
     const { stderr, stdout } = await compileSource(root, 'css-exports', (builder) => builder.addStyleLoaders());
@@ -400,13 +397,7 @@ test('preserves image resource bytes without an explicit minimizer', async (cont
         });
     });
 
-    const source = [
-        '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">',
-        '  <!-- This comment and whitespace must be preserved. -->',
-        '  <rect width="100" height="100" fill="#ff0000" />',
-        '</svg>',
-        '',
-    ].join('\n');
+    const source = ['<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">', '  <!-- This comment and whitespace must be preserved. -->', '  <rect width="100" height="100" fill="#ff0000" />', '</svg>', ''].join('\n');
 
     await writeFile(join(root, 'index.js'), "import image from './image.svg?resource'; process.stdout.write(image);\n");
     await writeFile(join(root, 'image.svg'), source);
@@ -429,13 +420,7 @@ test('optimizes inline SVG only with an explicit minimizer', async (context) => 
         });
     });
 
-    const source = [
-        '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">',
-        '  <!-- This comment and whitespace are intentionally removable. -->',
-        '  <rect width="100" height="100" fill="#ff0000" />',
-        '</svg>',
-        '',
-    ].join('\n');
+    const source = ['<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">', '  <!-- This comment and whitespace are intentionally removable. -->', '  <rect width="100" height="100" fill="#ff0000" />', '</svg>', ''].join('\n');
 
     await writeFile(join(root, 'index.js'), "import image from './image.svg?inline'; process.stdout.write(image);\n");
     await writeFile(join(root, 'image.svg'), source);
@@ -592,15 +577,7 @@ test('generates inline and automatic image outputs explicitly regardless of quer
         });
     });
 
-    await writeFile(
-        join(root, 'index.js'),
-        [
-            "import automatic from './image.svg?asset&width=16&as=webp';",
-            "import inline from './image.svg?as=webp&width=16&inline';",
-            'process.stdout.write(JSON.stringify({ automatic, inline }));',
-            '',
-        ].join('\n'),
-    );
+    await writeFile(join(root, 'index.js'), ["import automatic from './image.svg?asset&width=16&as=webp';", "import inline from './image.svg?as=webp&width=16&inline';", 'process.stdout.write(JSON.stringify({ automatic, inline }));', ''].join('\n'));
     await writeFile(join(root, 'image.svg'), '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><rect width="32" height="32" fill="red" /></svg>\n');
 
     const { stderr, stdout } = await compileSource(root, 'image-generator-output', (builder) => builder.addImageMinimizer(), 'production');
@@ -653,17 +630,7 @@ test('resizes explicit image conversions without cropping or enlargement regardl
         .png()
         .toBuffer();
 
-    await writeFile(
-        join(root, 'index.js'),
-        [
-            "import widthOnly from './image.png?as=png&width=40&resource';",
-            "import boundingBox from './image.png?resource&width=40&height=30&as=png';",
-            "import noUpscale from './image.png?as=png&width=200&resource';",
-            "import vectorUpscale from './logo.svg?as=png&width=128&resource';",
-            'process.stdout.write(JSON.stringify({ boundingBox, noUpscale, vectorUpscale, widthOnly }));',
-            '',
-        ].join('\n'),
-    );
+    await writeFile(join(root, 'index.js'), ["import widthOnly from './image.png?as=png&width=40&resource';", "import boundingBox from './image.png?resource&width=40&height=30&as=png';", "import noUpscale from './image.png?as=png&width=200&resource';", "import vectorUpscale from './logo.svg?as=png&width=128&resource';", 'process.stdout.write(JSON.stringify({ boundingBox, noUpscale, vectorUpscale, widthOnly }));', ''].join('\n'));
     await writeFile(join(root, 'image.png'), source);
     await writeFile(join(root, 'logo.svg'), '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="16"><rect width="32" height="16" fill="red" /></svg>\n');
 

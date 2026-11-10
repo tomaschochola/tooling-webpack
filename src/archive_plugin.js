@@ -17,15 +17,7 @@ function assertArchiveAssetName(name) {
     const suffixIndex = typeof name === 'string' ? name.search(/[?#]/u) : -1;
     const normalizedName = suffixIndex === -1 ? name : name.slice(0, suffixIndex);
 
-    if (
-        typeof normalizedName !== 'string' ||
-        normalizedName.length === 0 ||
-        normalizedName.includes('\\') ||
-        normalizedName.includes('\0') ||
-        normalizedName.startsWith('/') ||
-        /^[a-z]:\//iu.test(normalizedName) ||
-        normalizedName.split('/').some((segment) => segment === '' || segment === '.' || segment === '..')
-    ) {
+    if (typeof normalizedName !== 'string' || normalizedName.length === 0 || normalizedName.includes('\\') || normalizedName.includes('\0') || normalizedName.startsWith('/') || /^[a-z]:\//iu.test(normalizedName) || normalizedName.split('/').some((segment) => segment === '' || segment === '.' || segment === '..')) {
         throw new Error(`Cannot archive unsafe Webpack asset name "${name}".`);
     }
 
@@ -225,11 +217,7 @@ export class ArchivePlugin {
             } catch (error) {
                 archive.abort();
                 output.destroy();
-                await Promise.all([
-                    rm(temporaryDestination, { force: true }),
-                    rm(temporaryChecksumDestination, { force: true }),
-                    ...(archivePublished ? [rm(destination, { force: true }), rm(checksumDestination, { force: true })] : []),
-                ]);
+                await Promise.all([rm(temporaryDestination, { force: true }), rm(temporaryChecksumDestination, { force: true }), ...(archivePublished ? [rm(destination, { force: true }), rm(checksumDestination, { force: true })] : [])]);
 
                 throw error;
             }

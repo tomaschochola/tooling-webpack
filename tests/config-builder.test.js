@@ -82,16 +82,7 @@ test('normalizes public URLs independently for other deployment metadata', () =>
 });
 
 test('rejects public URLs that are not safe absolute deployment bases', () => {
-    for (const publicUrl of [
-        undefined,
-        null,
-        '/',
-        'http://example.com/',
-        'https://user@example.com/',
-        'https://example.com/application',
-        'https://example.com/?version=1',
-        'https://example.com/#fragment',
-    ]) {
+    for (const publicUrl of [undefined, null, '/', 'http://example.com/', 'https://user@example.com/', 'https://example.com/application', 'https://example.com/?version=1', 'https://example.com/#fragment']) {
         assert.throws(() => new WebpackConfigBuilder({ ecmaVersion: 2025 }).setPublicUrl(publicUrl), {
             name: 'TypeError',
         });
@@ -867,17 +858,7 @@ test('precaches application shell assets by default', () => {
     const config = new WebpackConfigBuilder({ ecmaVersion: 2025 }).addWorkboxServiceWorkerPlugin().toConfig();
     const include = config.plugins[0].config.include;
 
-    for (const asset of [
-        'index.html',
-        'admin/index.html',
-        'immutable.1234.js',
-        'immutable.1234.mjs',
-        'immutable.1234.css',
-        'immutable.1234.wasm',
-        'manifest.webmanifest',
-        'manifest.json',
-        'immutable.1234.woff2',
-    ]) {
+    for (const asset of ['index.html', 'admin/index.html', 'immutable.1234.js', 'immutable.1234.mjs', 'immutable.1234.css', 'immutable.1234.wasm', 'manifest.webmanifest', 'manifest.json', 'immutable.1234.woff2']) {
         assert.equal(
             include.some((condition) => condition.test(asset)),
             true,

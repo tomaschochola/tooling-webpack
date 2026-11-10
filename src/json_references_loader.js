@@ -69,9 +69,7 @@ function normalizeJsonValue(value, name, ancestors = new Set()) {
 
     ancestors.add(value);
 
-    const normalized = Array.isArray(value)
-        ? Array.from(value, (item) => normalizeJsonValue(item, name, ancestors))
-        : Object.fromEntries(Object.entries(value).map(([key, item]) => [key, normalizeJsonValue(item, name, ancestors)]));
+    const normalized = Array.isArray(value) ? Array.from(value, (item) => normalizeJsonValue(item, name, ancestors)) : Object.fromEntries(Object.entries(value).map(([key, item]) => [key, normalizeJsonValue(item, name, ancestors)]));
 
     ancestors.delete(value);
 

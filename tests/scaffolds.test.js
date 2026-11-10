@@ -71,11 +71,7 @@ function hasWebManifestRule(config) {
 
 function assertSpaProfile(createConfig, entry, { immediate = false, installable = false, offline = false } = {}) {
     const { development, production, productionPreview, productionServe } = createEnvironmentConfigs(createConfig);
-    const productionEntry = immediate
-        ? ['@tomaschochola/tooling-webpack/register-service-worker-immediate', entry]
-        : offline
-          ? ['@tomaschochola/tooling-webpack/register-service-worker', entry]
-          : [entry];
+    const productionEntry = immediate ? ['@tomaschochola/tooling-webpack/register-service-worker-immediate', entry] : offline ? ['@tomaschochola/tooling-webpack/register-service-worker', entry] : [entry];
 
     assert.deepEqual(development.entry, { index: [entry] });
     assert.deepEqual(production.entry, { index: productionEntry });
@@ -156,11 +152,7 @@ test('provides equivalent browser MPA delivery profiles without an SPA fallback'
 });
 
 test('provides normalized standard and PWA metadata placeholders', async () => {
-    const [indexHtml, pwaHtml, manifestSource] = await Promise.all([
-        readFile(new URL('../scaffolds/index.html', import.meta.url), 'utf8'),
-        readFile(new URL('../scaffolds/pwa.html', import.meta.url), 'utf8'),
-        readFile(new URL('../scaffolds/manifest.webmanifest', import.meta.url), 'utf8'),
-    ]);
+    const [indexHtml, pwaHtml, manifestSource] = await Promise.all([readFile(new URL('../scaffolds/index.html', import.meta.url), 'utf8'), readFile(new URL('../scaffolds/pwa.html', import.meta.url), 'utf8'), readFile(new URL('../scaffolds/manifest.webmanifest', import.meta.url), 'utf8')]);
     const manifest = JSON.parse(manifestSource);
     const brand = 'github.com/tomaschochola/tooling-webpack';
     const author = 'Tomáš Chochola <tomaschochola@tomaschochola.cz>';

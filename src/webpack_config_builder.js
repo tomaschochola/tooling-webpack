@@ -20,12 +20,7 @@ import { safeSharpGenerate } from './safe_sharp_generate.js';
 
 const require = createRequire(import.meta.url);
 const babelLoader = require.resolve('babel-loader');
-const defaultCompressionTests = [
-    /\.(?:css|csv|html?|ics|md|text|tsv|txt|vtt)(?:[?#].*)?$/i,
-    /\.(?:atom|json|jsonld|map|rss|webmanifest|xhtml|xml|xsl)(?:[?#].*)?$/i,
-    /\.(?:cjs|js|mjs|wasm)(?:[?#].*)?$/i,
-    /\.(?:eot|otf|svg|ttf)(?:[?#].*)?$/i,
-];
+const defaultCompressionTests = [/\.(?:css|csv|html?|ics|md|text|tsv|txt|vtt)(?:[?#].*)?$/i, /\.(?:atom|json|jsonld|map|rss|webmanifest|xhtml|xml|xsl)(?:[?#].*)?$/i, /\.(?:cjs|js|mjs|wasm)(?:[?#].*)?$/i, /\.(?:eot|otf|svg|ttf)(?:[?#].*)?$/i];
 const defaultWorkboxInclude = [/\.(?:css|html?|js|mjs|wasm|webmanifest|woff2)(?:[?#].*)?$/i, /(?:^|\/)manifest\.json(?:[?#].*)?$/i];
 const htmlLoader = require.resolve('html-loader');
 const jsonReferenceModuleLoader = fileURLToPath(new URL('./json_reference_module_loader.js', import.meta.url));
@@ -116,9 +111,7 @@ function entryImportsRequest(entry, request) {
 }
 
 function assertServiceWorkerRetirementEntries(entries) {
-    const registrationEntry = [...serviceWorkerRegistrationEntries].find(
-        (request) => typeof entries === 'object' && entries !== null && Object.values(entries).some((entry) => entryImportsRequest(entry, request)),
-    );
+    const registrationEntry = [...serviceWorkerRegistrationEntries].find((request) => typeof entries === 'object' && entries !== null && Object.values(entries).some((entry) => entryImportsRequest(entry, request)));
 
     if (registrationEntry !== undefined) {
         throw new Error(`Service Worker retirement builds must not include the "${registrationEntry}" entry because it would register the retirement worker again.`);
@@ -798,17 +791,7 @@ export class WebpackConfigBuilder {
         return result;
     }
 
-    addWebManifestLoader({
-        generator = {},
-        references = [
-            { path: ['icons', '*', 'src'] },
-            { path: ['screenshots', '*', 'src'], required: false },
-            { path: ['shortcuts', '*', 'icons', '*', 'src'], required: false },
-            { path: ['file_handlers', '*', 'icons', '*', 'src'], required: false },
-        ],
-        test = /\.webmanifest$/i,
-        ...options
-    } = {}) {
+    addWebManifestLoader({ generator = {}, references = [{ path: ['icons', '*', 'src'] }, { path: ['screenshots', '*', 'src'], required: false }, { path: ['shortcuts', '*', 'icons', '*', 'src'], required: false }, { path: ['file_handlers', '*', 'icons', '*', 'src'], required: false }], test = /\.webmanifest$/i, ...options } = {}) {
         return this.#runMethod('addWebManifestLoader', () =>
             this.addJsonReferencesLoader({
                 ...options,
