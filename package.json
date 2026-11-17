@@ -39,10 +39,10 @@
     },
     "description": "Composable Webpack configuration builder for modern TypeScript web applications.",
     "devDependencies": {
-        "@tomaschochola/tooling-eslint": "file:../tooling-eslint",
-        "@tomaschochola/tooling-prettier": "file:../tooling-prettier",
-        "@tomaschochola/tooling-trimmer": "file:../tooling-trimmer",
-        "@tomaschochola/tooling-typescript": "file:../tooling-typescript"
+        "@tomaschochola/tooling-eslint": "git+https://github.com/tomaschochola/tooling-eslint.git",
+        "@tomaschochola/tooling-prettier": "git+https://github.com/tomaschochola/tooling-prettier.git",
+        "@tomaschochola/tooling-trimmer": "git+https://github.com/tomaschochola/tooling-trimmer.git",
+        "@tomaschochola/tooling-typescript": "git+https://github.com/tomaschochola/tooling-typescript.git"
     },
     "engines": {
         "node": ">=22.15.0"
